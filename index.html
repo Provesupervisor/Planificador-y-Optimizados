@@ -2017,7 +2017,7 @@ const NUBE_URL_KEY='prove_nube_url';
    "Configurar servidor" y ese valor manda sobre este. */
 /* Sello de version: sirve para saber, sin adivinar, que archivo esta corriendo
    realmente el navegador (GitHub Pages y el cache del movil suelen servir uno viejo). */
-const APP_VERSION='2026-10-20 · planificador-5';
+const APP_VERSION='2026-10-20 · planificador-7';
 const NUBE_URL_DEFECTO='https://script.google.com/macros/s/AKfycbzPfXZFs9GVEfBfDERzGGzxO8OgoRaMOHIg_QO9jOpMP31BkvENFenAP9rubgh_GPcW4Q/exec';
 const SESION_KEY='prove_sesion';
 let sesion={usuario:'',clave:'',rol:'',nombre:''};
@@ -4503,9 +4503,196 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
 #avModal .opts label{display:flex;align-items:center;gap:9px;padding:9px 11px;border:1.5px solid var(--borde);border-radius:9px;cursor:pointer;font-size:13px;}
 #avModal .opts label:has(input:checked){border-color:var(--negro);background:#f6f7f9;}
 #avModal textarea{width:100%;min-height:70px;border:1.5px solid var(--borde);border-radius:8px;padding:8px;font:inherit;font-size:13px;margin-top:4px;}
+.av-vistas{display:inline-flex;background:#e9ecf0;border-radius:10px;padding:3px;gap:3px;margin-bottom:14px;}
+.av-vistas button{border:0;background:transparent;padding:8px 16px;border-radius:8px;font-weight:700;font-size:13px;color:#4a5866;cursor:pointer;}
+.av-vistas button.on{background:#fff;color:var(--negro);box-shadow:0 1px 3px rgba(0,0,0,.12);}
+.av-vistas button span{display:inline-block;background:var(--negro);color:#fff;border-radius:10px;padding:0 7px;font-size:11px;margin-left:4px;}
+.av-lanes{display:flex;flex-direction:column;gap:10px;}
+.av-lane{background:#fff;border:1px solid var(--borde);border-radius:12px;padding:12px 16px 14px;}
+.av-lane.vivo{border-color:#f0b35c;box-shadow:inset 4px 0 0 #f59e0b;}
+.av-lane-h{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.av-lane-id{min-width:150px;}
+.av-lane-av{width:220px;font-size:12px;color:#5a6b7a;}
+.av-lane-av b{font-size:20px;color:var(--negro);margin-right:2px;}
+.av-lane-av .av-tramos{padding:0;margin-top:5px;height:9px;}
+.av-lane-info{flex:1;min-width:260px;display:flex;flex-direction:column;gap:2px;font-size:12.5px;color:#3a4652;}
+.av-lane-info .ahora{color:#9a4a07;font-weight:600;}
+.av-lane-info .lento{color:#b91c1c;}
+.av-lane-info .fin{color:#15803d;font-weight:700;}
+.av-lane-info .lock{color:#15803d;}
+.av-lane-info .dif{color:#9a4a07;}
+.av-lane-info .gris{color:#8a96a3;}
+.av-lane-acc{display:flex;gap:8px;align-items:center;}
+.av-lane-acc .av-ord-btn{border:1px solid #f0c5ca;border-radius:7px;background:#fff;}
+.av-paradas{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px;}
+.av-chip{display:inline-flex;align-items:center;gap:6px;max-width:260px;border:1px solid var(--borde);border-radius:999px;padding:3px 10px 3px 3px;font-size:12px;background:#fff;color:#3a4652;cursor:default;}
+.av-chip .n{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:11px;color:#fff;background:#8a939d;flex:none;}
+.av-chip .n.sin{background:#fff;color:#8a939d;border:1.5px dashed #b8bec6;}
+.av-chip .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.av-chip .x{font-weight:700;color:#5a6b7a;font-size:11px;}
+.av-chip .h{font-variant-numeric:tabular-nums;color:#5a6b7a;font-size:11px;}
+.av-chip.TERMINADO{background:#eef9f1;border-color:#bfe3cb;}.av-chip.TERMINADO .n{background:#16a34a;}
+.av-chip.EN_PROCESO{background:#fff6e5;border-color:#f3c77a;color:#7a3e05;font-weight:600;}.av-chip.EN_PROCESO .n{background:#f59e0b;}
+.av-chip.ENTREGA_PARCIAL{background:#f5f0fe;border-color:#d6c6fb;}.av-chip.ENTREGA_PARCIAL .n{background:#8b5cf6;}
+.av-chip.ANULADO{background:#fdf0f0;border-color:#f3c0c0;}.av-chip.ANULADO .n{background:#dc2626;}.av-chip.ANULADO .t{text-decoration:line-through;}
+.av-inc-strip{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;background:#fff;border:1px solid #f3c0c0;border-radius:10px;padding:9px 14px;margin-bottom:10px;font-size:12px;color:#3a4652;}
+.av-inc-strip b{color:#8a1020;}
+.av-sinasig{margin-top:10px;font-size:12.5px;color:#5a6b7a;}
+.av-link-btn{border:0;background:none;color:var(--rojo2);font-weight:700;text-decoration:underline;cursor:pointer;padding:0;font-size:12.5px;}
+.av-gen{background:#fff;border:1px solid var(--borde);border-radius:12px;overflow:hidden;}
+.av-gen-tool{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--borde);}
+.av-fchips{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:280px;}
+.av-fchip{border:1px solid var(--borde);background:#fff;border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600;color:#3a4652;cursor:pointer;}
+.av-fchip span{color:#8a96a3;font-weight:700;margin-left:2px;}
+.av-fchip.on{background:var(--negro);border-color:var(--negro);color:#fff;}
+.av-fchip.on span{color:#cfd4da;}
+.av-gen-tool select,.av-gen-tool input{border:1px solid var(--borde);border-radius:8px;padding:7px 10px;font-size:12.5px;font-family:inherit;}
+.av-gen-tool input{min-width:240px;}
+.av-gen-cont{overflow:auto;max-height:calc(100vh - 250px);min-height:300px;}
+.av-gtab{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;}
+.av-gtab thead th{position:sticky;top:0;z-index:2;background:var(--negro);color:#fff;font-weight:600;font-size:11px;text-align:left;padding:8px;white-space:nowrap;}
+.av-gtab td{padding:6px 8px;border-bottom:1px solid #eef0f3;vertical-align:top;}
+.av-gtab td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.av-gtab td.fuerte{font-weight:800;color:var(--negro);}
+.av-gtab td.pl{white-space:nowrap;}
+.av-gtab td.cli{font-weight:600;color:var(--negro);min-width:180px;}
+.av-gtab td.mono{font-variant-numeric:tabular-nums;white-space:nowrap;}
+.av-gtab td.ase{min-width:120px;color:#5a6b7a;}
+.av-gtab td.nota{min-width:140px;}
+.av-gtab td.obs{min-width:140px;color:#5a6b7a;font-size:11.5px;}
+.av-gtab td.lento{color:#b91c1c;font-weight:800;}
+.av-gtab .mot{color:#b91c1c;}.av-gtab .det{color:#6d28d9;}
+.av-gtab tr.grp td{background:#f2f4f7;border-top:2px solid #d4d8dd;padding:8px;font-size:12px;color:#3a4652;position:sticky;top:31px;z-index:1;}
+.av-gtab tr.grp b{font-size:13.5px;color:var(--negro);margin-right:10px;letter-spacing:.02em;}
+.av-gtab tr.grp .g-pers{margin-right:14px;}
+.av-gtab tr.grp .g-av{font-weight:700;color:var(--negro);margin-right:14px;}
+.av-gtab tr.grp .g-lock{color:#15803d;}.av-gtab tr.grp .g-gris{color:#8a96a3;}
+.av-gtab tr.grp.sin td{background:#fbf7ee;}
+.av-ruta.mini{display:inline-grid;width:22px;height:22px;font-size:12px;border-radius:6px;margin-right:8px;vertical-align:-5px;}
+.av-gtab tr.r-EN_PROCESO td{background:#fffaf0;}
+.av-gtab tr.r-ANULADO td{background:#fff7f7;}
+.av-gtab tr.r-ANULADO td.cli{text-decoration:line-through;color:#8a1020;}
+.av-gtab tr:hover td{background:#f8f9fb;}
+.av-est.SIN{background:#f6efe1;color:#8a5a00;}
+.av-vacio-td{text-align:center;color:#6a7b8a;padding:30px!important;}
+.av-gen-pie{padding:8px 14px;font-size:11.5px;color:#6a7b8a;border-top:1px solid var(--borde);background:#fafbfc;}
+@media (max-width:640px){.av-lane-av{width:100%;}.av-lane-info{min-width:0;flex-basis:100%;}.av-lane-acc{width:100%;}.av-lane-acc button{flex:1;}.av-gen-tool input{min-width:0;flex:1;}.av-vistas{display:flex;}.av-vistas button{flex:1;}}
 @media (max-width:640px){
   #view-avance .av-tool,.av-aviso{margin-left:0;margin-right:0;padding-left:12px;padding-right:12px;}
   .av-grid{grid-template-columns:1fr;}
+}
+/* ---------- tablero de una pantalla ---------- */
+#view-avance #avCuerpo{padding-top:12px;padding-bottom:12px;}
+.tb-barra{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;background:#fff;border:1px solid var(--borde);border-radius:12px;padding:8px 12px;margin-bottom:8px;}
+.tb-avance{display:flex;align-items:center;gap:8px;color:#5a6b7a;font-size:12px;}
+.tb-avance b{font-size:20px;color:var(--negro);}
+.tb-barrita{width:110px;height:8px;border-radius:4px;background:#e1e5ea;display:flex;overflow:hidden;}
+.tb-barrita span{height:100%;}
+.tb-ests{display:flex;flex-wrap:wrap;gap:4px;}
+.tb-est{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--borde);background:#fff;color:#3a4652;border-radius:999px;padding:3px 9px;font-size:11.5px;cursor:pointer;font-family:inherit;}
+.tb-est i{width:8px;height:8px;border-radius:50%;}
+.tb-est b{color:var(--negro);}
+.tb-est:hover{border-color:#9aa3ad;}
+.tb-est.on{background:var(--negro);border-color:var(--negro);color:#fff;}
+.tb-est.on b{color:#fff;}
+.tb-filtros{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-left:auto;}
+.tb-filtros select,.tb-filtros input{border:1px solid var(--borde);border-radius:8px;padding:6px 9px;font-size:12.5px;font-family:inherit;background:#fff;color:var(--negro);}
+.tb-filtros input{width:170px;}
+@media (max-width:1440px){.tb-barrita{width:56px;}.tb-est{padding:3px 7px;font-size:11px;gap:4px;}.tb-filtros input{width:135px;}.tb-filtros select{max-width:124px;padding:6px 6px;}.tb-barra{gap:6px 10px;padding:7px 10px;}.tb-avance b{font-size:18px;}}
+.tb-filtros select{max-width:150px;}
+#view-avance .av-tool .tb-vista,#view-avance .av-tool .tb-excel{flex:none;}
+#view-avance .av-tool button.alt{padding:6px 10px;}
+.tb-limpiar{border:0;background:none;color:var(--rojo2);font-weight:700;font-size:12px;text-decoration:underline;cursor:pointer;padding:4px;}
+.tb-sep{width:1px;height:24px;background:var(--borde);margin:0 2px;}
+.tb-vista{display:inline-flex;background:#e9ecf0;border-radius:8px;padding:2px;}
+.tb-vista button{border:0;background:transparent;color:#4a5866;border-radius:6px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+.tb-vista button.on{background:#fff;color:var(--negro);box-shadow:0 1px 2px rgba(0,0,0,.15);}
+.tb-excel{border:0;background:var(--verde);color:#fff;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+.tb-board{--cab:244px;display:flex;flex-direction:column;gap:6px;min-height:0;}
+.tb-row{display:grid;grid-template-columns:var(--cab) repeat(var(--n),minmax(0,1fr));gap:6px;flex:1 1 0;min-height:0;position:relative;}
+.tb-row:not(.tb-head)::before{content:"";position:absolute;left:var(--cab);right:0;top:50%;height:4px;margin-top:-2px;background:repeating-linear-gradient(90deg,#cfd4da 0 10px,transparent 10px 18px);z-index:0;}
+.tb-head{flex:0 0 16px;}
+.tb-head .tb-cab{background:none;border:0;padding:0 4px;font-size:10.5px;color:#8a96a3;font-weight:700;}
+.tb-col{font-size:10.5px;color:#8a96a3;font-weight:700;text-align:center;}
+.tb-cab{position:relative;z-index:1;background:#fff;border:1px solid var(--borde);border-radius:10px;padding:6px 9px;display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:0;overflow:hidden;}
+.tb-row.vivo .tb-cab{box-shadow:inset 4px 0 0 #f59e0b;}
+.tb-row.apagada{opacity:.45;}
+.tb-placa{display:flex;align-items:center;gap:8px;border:0;background:none;padding:0;text-align:left;cursor:pointer;color:var(--negro);font-family:inherit;min-width:0;}
+.tb-placa .av-ruta{width:28px;height:28px;font-size:14px;border-radius:7px;}
+.tb-placa .av-ruta.sin{background:#c08a1e;}
+.tb-placa b{display:block;font-size:14px;letter-spacing:.02em;}
+.tb-placa small{display:block;font-size:10.5px;color:#6a7b8a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;}
+.tb-placa:hover b{color:var(--rojo2);}
+.tb-prog{font-size:11px;color:#5a6b7a;display:flex;align-items:center;gap:6px;}
+.tb-prog b{font-size:14px;color:var(--negro);}
+.tb-mini{flex:1;display:flex;gap:1px;height:5px;}
+.tb-mini span{flex:1;border-radius:1px;}
+.tb-linea{display:flex;flex-wrap:nowrap;align-items:center;gap:8px;font-size:11px;color:#3a4652;min-width:0;white-space:nowrap;}
+.tb-linea>span{min-width:0;overflow:hidden;text-overflow:ellipsis;}
+.tb-linea>span.tb-lock,.tb-linea>span.tb-gris{flex:none;}
+.tb-linea .tb-ahora{color:#9a4a07;font-weight:700;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tb-linea .lento{color:#b91c1c;}
+.tb-linea .tb-sig{max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tb-linea .tb-fin{color:#15803d;font-weight:700;}
+.tb-linea .tb-lock{color:#15803d;font-weight:600;}
+.tb-linea .tb-gris{color:#8a96a3;}
+.tb-ord{border:0;background:none;padding:0 2px;cursor:pointer;font-size:12px;margin-left:auto;}
+.tb-tile{position:relative;z-index:1;display:flex;flex-direction:column;gap:2px;min-width:0;overflow:hidden;text-align:left;border:1px solid #d6dae0;background:#fff;color:var(--negro);border-radius:10px;padding:5px 7px;cursor:pointer;font-family:inherit;transition:box-shadow .12s;}
+.tb-tile:hover{box-shadow:0 2px 10px rgba(0,0,0,.14);}
+.tb-tile:focus-visible{outline:3px solid #2563eb;outline-offset:1px;}
+.tb-top{display:flex;align-items:center;gap:4px;}
+.tb-n{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:800;color:#fff;background:#8a939d;flex:none;}
+.tb-n.sin{background:#fff;color:#8a939d;border:1.5px dashed #b8bec6;}
+.tb-x{font-size:10.5px;font-weight:800;color:#5a6b7a;}
+.tb-h{margin-left:auto;font-size:10.5px;font-variant-numeric:tabular-nums;color:#5a6b7a;font-weight:700;}
+.tb-c{font-size:11.5px;font-weight:700;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;}
+.tb-f{font-size:10px;color:#6a7b8a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px;margin-top:auto;}
+.tb-f i{width:7px;height:7px;border-radius:50%;flex:none;}
+.tb-tile.TERMINADO{background:#ebf8ef;border-color:#b9e2c6;}.tb-tile.TERMINADO .tb-n{background:#16a34a;}
+.tb-tile.EN_PROCESO{background:#fff4dc;border:2px solid #f59e0b;}.tb-tile.EN_PROCESO .tb-n{background:#f59e0b;}.tb-tile.EN_PROCESO .tb-h{color:#9a4a07;}
+.tb-tile.ENTREGA_PARCIAL{background:#f4effe;border-color:#d6c6fb;}.tb-tile.ENTREGA_PARCIAL .tb-n{background:#8b5cf6;}
+.tb-tile.ANULADO{background:#fdeeee;border-color:#f3c0c0;}.tb-tile.ANULADO .tb-n{background:#dc2626;}.tb-tile.ANULADO .tb-c{text-decoration:line-through;color:#8a1020;}
+.tb-tile.SIN{background:#fbf6ea;border:1px dashed #d9b46a;}
+.tb-tile.sig{outline:2px dashed var(--negro);outline-offset:-3px;}
+.tb-tile.dim{opacity:.18;filter:grayscale(1);}
+.tb-tile.elegido{box-shadow:0 0 0 3px var(--rojo);}
+.tb-mas{position:relative;z-index:1;display:grid;place-items:center;font-size:12px;font-weight:800;color:#5a6b7a;background:#f2f4f7;border-radius:10px;}
+.tb-board[data-densidad="media"] .tb-f,.tb-board[data-densidad="media"] .tb-placa small{display:none;}
+.tb-board[data-densidad="media"] .tb-cab{gap:2px;padding:4px 9px;}
+.tb-board[data-densidad="min"] .tb-f,.tb-board[data-densidad="min"] .tb-placa small,.tb-board[data-densidad="min"] .tb-mini,.tb-board[data-densidad="min"] .tb-prog{display:none;}
+.tb-board[data-densidad="min"] .tb-c{-webkit-line-clamp:1;}
+.tb-board[data-densidad="min"] .tb-cab{gap:1px;padding:3px 8px;}
+.tb-board[data-densidad="amplia"] .tb-c{font-size:12.5px;-webkit-line-clamp:3;}
+.tb-board[data-densidad="amplia"] .tb-n{width:24px;height:24px;font-size:12px;}
+.tb-pie{font-size:11px;color:#6a7b8a;margin-top:6px;}
+.tb-panel{position:fixed;top:0;right:0;height:100vh;width:min(400px,100vw);background:#fff;box-shadow:-12px 0 32px rgba(0,0,0,.2);z-index:90;transform:translateX(105%);transition:transform .18s ease;overflow:auto;}
+.tb-panel.abierto{transform:none;}
+@media (prefers-reduced-motion:reduce){.tb-panel{transition:none;}.tb-tile{transition:none;}}
+.tb-p-h{display:flex;align-items:flex-start;gap:10px;background:var(--negro);color:#fff;padding:16px 18px;border-bottom:4px solid var(--rojo);}
+.tb-p-h h3{margin:0;font-size:17px;}
+.tb-p-sub{font-size:12px;color:#c7ccd2;margin-top:3px;}
+.tb-p-x{margin-left:auto;border:0;background:#2b2d31;color:#fff;width:32px;height:32px;border-radius:8px;font-size:20px;cursor:pointer;flex:none;}
+.tb-p-meta{display:flex;flex-wrap:wrap;gap:6px 14px;padding:12px 18px;font-size:12.5px;color:#3a4652;border-bottom:1px solid #eef0f3;}
+.tb-p-meta i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;}
+.tb-p-fac{margin:12px 18px 0;border:1px solid var(--borde);border-radius:10px;padding:10px 12px;}
+.tb-p-fac-h{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;}
+.tb-p-fac-h b{font-size:14px;font-variant-numeric:tabular-nums;}
+.tb-p-fac dl{display:grid;grid-template-columns:96px 1fr;gap:4px 10px;margin:0;font-size:12.5px;}
+.tb-p-fac dt{color:#6a7b8a;}
+.tb-p-fac dd{margin:0;color:var(--negro);}
+.tb-p-fac .lento{color:#b91c1c;font-weight:800;}
+.tb-p-fac .mot{color:#b91c1c;font-weight:600;}.tb-p-fac .det{color:#6d28d9;font-weight:600;}
+.zdot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px;}
+@media (max-width:760px){
+  .tb-board{height:auto!important;}
+  .tb-head{display:none;}
+  .tb-row{display:flex;flex-wrap:wrap;flex:none;gap:5px;}
+  .tb-row::before{display:none;}
+  .tb-cab{width:100%;}
+  .tb-tile{flex:0 0 calc(33.33% - 4px);min-height:62px;}
+  .tb-filtros{margin-left:0;width:100%;}
+  .tb-filtros input{flex:1;width:auto;}
+  .tb-sep{display:none;}
 }
 </style>
 
@@ -4607,12 +4794,17 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
   function avPintarTool(msgUpd){
     const t=document.getElementById('avTool');if(!t)return;
     const d=progFechaActual();
-    t.innerHTML=`<span class="av-prog">${d?esc(fechaPE(d))+' · '+esc(turnoLbl(turnoActual)):'Sin programación en pantalla'}<small>lo que marcan los conductores en Mi Ruta</small></span>
+    const hay=!!(pedidos.length&&d);
+    t.innerHTML=`<span class="av-prog">${d?esc(fechaPE(d))+' · '+esc(turnoLbl(turnoActual)):'Sin programación en pantalla'}<small>avance que marcan los choferes en Mi Ruta</small></span>
       <span class="av-esp"></span>
+      ${hay?`<div class="tb-vista" role="tablist"><button role="tab" aria-selected="${avVista==='tablero'}" class="${avVista==='tablero'?'on':''}" data-tbvista="tablero" title="Todo el día en una pantalla">▦ Tablero</button><button role="tab" aria-selected="${avVista==='tabla'}" class="${avVista==='tabla'?'on':''}" data-tbvista="tabla" title="Una fila por factura">☰ Tabla</button></div>
+      <button class="tb-excel" id="tbExcel" title="Descarga lo filtrado: cada fila con su placa y orden">⬇ Excel</button>`:''}
       <span class="av-upd">${esc(msgUpd||(avUlt?'Actualizado '+new Date(avUlt).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'}):''))}</span>
-      <label class="av-chk"><input type="checkbox" id="avAuto" ${avAuto?'checked':''}> Actualizar cada minuto</label>
+      <label class="av-chk" title="Vuelve a consultar sola cada minuto"><input type="checkbox" id="avAuto" ${avAuto?'checked':''}> Auto</label>
       <button class="alt" id="avRefrescar">⟳ Actualizar</button>
-      <button class="alt" id="avCopiar" title="Enlace de la app de los conductores, para mandarlo por WhatsApp">📱 Copiar enlace de Mi Ruta</button>`;
+      <button class="alt" id="avCopiar" title="Copia el enlace de la app de los choferes, para mandarlo por WhatsApp">📱 Enlace Mi Ruta</button>`;
+    t.querySelectorAll('[data-tbvista]').forEach(b=>b.onclick=()=>{avVista=b.dataset.tbvista;try{localStorage.setItem('av_vista',avVista);}catch(e){}avPintar();});
+    const bx=document.getElementById('tbExcel');if(bx)bx.onclick=()=>exportarExcel(construir(progClave()));
     document.getElementById('avRefrescar').onclick=()=>avCargar(false);
     document.getElementById('avAuto').onchange=e=>{avAuto=e.target.checked;try{localStorage.setItem('av_auto',avAuto?'1':'0');}catch(x){}};
     document.getElementById('avCopiar').onclick=async()=>{
@@ -4625,15 +4817,92 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
 
   function estadoDe(prog,p){return avEstados[prog+'|'+facKey(p)]||null;}
 
+  /* =====================================================================
+     TABLERO DE DESPACHO: todo el día en UNA pantalla
+     Filas = camiones, columnas = orden de visita (1, 2, 3…). Cada mosaico es
+     una parada con el color de su estado. El alto se ajusta a la ventana para
+     que no haga falta desplazarse. Filtros: placa, zona, cliente y estado.
+     ===================================================================== */
+  let avVista='tablero', avF={placa:'',zona:'',q:'',est:''}, tbSel=null;
+  try{const v=localStorage.getItem('av_vista');if(v==='tabla')avVista='tabla';}catch(e){}
+  const ESTF=[['pend','Por atender'],['EN PROCESO','En proceso'],['TERMINADO','Terminado'],['ENTREGA PARCIAL','Parcial'],['ANULADO','Anulado'],['SIN ASIGNAR','Sin camión']];
+
+  function estadoParada(lista){
+    if(lista.some(e=>e==='EN PROCESO'))return 'EN PROCESO';
+    if(lista.every(e=>AV_FINAL[e])){
+      if(lista.every(e=>e==='ANULADO'))return 'ANULADO';
+      if(lista.every(e=>e==='TERMINADO'))return 'TERMINADO';
+      return 'ENTREGA PARCIAL';
+    }
+    if(lista.some(e=>AV_FINAL[e]))return 'EN PROCESO';
+    return 'EN RUTA';
+  }
+  function minFila(f){const e=f.e||{};
+    if(e.horaLlegada&&e.horaFin)return minEntre(e.horaLlegada,e.horaFin);
+    if(f.est==='EN PROCESO'&&e.horaLlegada)return minEntre(e.horaLlegada);
+    return null;}
+  function sinTilde(s){return String(s||'').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
+  function zonaDe(p){return normH(p.ZONA)||'SIN ZONA';}
+  /* "Corporacion Office Decor S.A.C." -> "Corporacion Office Decor": la razón social completa va en el detalle */
+  function corto(n){
+    let s=String(n||'').trim().replace(/\bSOCIEDAD AN[OÓ]NIMA CERRADA\b/i,'').trim();
+    for(let k=0;k<2;k++)s=s.replace(/[\s,.-]+(S\.?\s?A\.?\s?C\.?|S\.?\s?A\.?\s?A\.?|S\.?\s?R\.?\s?L\.?|E\.?\s?I\.?\s?R\.?\s?L\.?|S\.?\s?A\.?)$/i,'').trim();
+    return tit(s||n);
+  }
+
+  /* todo lo que se pinta, calculado una sola vez */
+  function construir(prog){
+    const tot={},camiones=[];let nTot=0;
+    unidades.forEach(u=>{
+      const ps=pedidos.filter(p=>p.unitId===u.id&&!p.baja).sort((a,b)=>(a.seq||999)-(b.seq||999)||a.id-b.id);
+      if(!ps.length)return;
+      const filas=ps.map(p=>{const e=estadoDe(prog,p);return {p,u,e,est:(e&&e.estado)||'EN RUTA',ord:(e&&+e.ordenVisita)||0};});
+      const conOrd=filas.filter(f=>f.ord);
+      const distinto=conOrd.some((f,i)=>i&&f.ord<conOrd[i-1].ord);
+      filas.sort((a,b)=>(a.ord||1e6)-(b.ord||1e6)||(a.p.seq||999)-(b.p.seq||999));
+      const c={};filas.forEach(f=>{c[f.est]=(c[f.est]||0)+1;tot[f.est]=(tot[f.est]||0)+1;nTot++;});
+      const hechas=filas.filter(f=>AV_FINAL[f.est]).length;
+      /* paradas: facturas seguidas del mismo cliente (como en Mi Ruta), en orden de visita */
+      const paradas=paradasUnidad(u,prog).map(s=>({...s,filas:s.peds.map(p=>filas.find(f=>f.p===p))}));
+      camiones.push({u,filas,paradas,c,hechas,pct:Math.round(hechas/filas.length*100),distinto,conOrd,
+        ahora:filas.find(f=>f.est==='EN PROCESO'),sig:paradas.find(s=>s.est==='EN RUTA'),
+        ult:filas.map(f=>f.e&&f.e.actualizado).filter(Boolean).sort().slice(-1)[0],
+        fin:filas.map(f=>f.e&&f.e.horaFin).filter(Boolean).sort().slice(-1)[0],
+        fConf:filas.find(f=>f.e&&f.e.ordenConfirmado)});
+    });
+    const sinAsignar=pedidos.filter(p=>!p.unitId&&!p.baja).sort((a,b)=>String(a.CLIENTES||'').localeCompare(String(b.CLIENTES||'')))
+      .map(p=>({p,u:null,e:null,est:'SIN ASIGNAR',ord:0}));
+    tot['SIN ASIGNAR']=sinAsignar.length;
+    return {camiones,sinAsignar,tot,nTot};
+  }
+
+  /* ---------- filtros ---------- */
+  function pasaEst(f,est){
+    if(!est)return true;
+    if(est==='pend')return f.est==='EN RUTA'||f.est==='EN PROCESO';
+    return f.est===est;
+  }
+  function coincide(f){
+    if(avF.placa&&(avF.placa==='__sin'?!!f.u:(!f.u||f.u.placa!==avF.placa)))return false;
+    if(avF.zona&&zonaDe(f.p)!==avF.zona)return false;
+    if(!pasaEst(f,avF.est))return false;
+    if(avF.q){const t=sinTilde([f.p.CLIENTES,f.p.FACTURA,f.p.DISTRITO,f.p.ASESOR].join(' '));
+      if(t.indexOf(sinTilde(avF.q).trim())<0)return false;}
+    return true;
+  }
+  function hayFiltro(){return !!(avF.zona||avF.q||avF.est);}
+  function todasLasFilas(D){const t=[];D.camiones.forEach(C=>C.filas.forEach(f=>t.push(f)));D.sinAsignar.forEach(f=>t.push(f));return t;}
+
   function avPintar(){
     actualizarConteo();
     if(!vistaActiva())return;
     avPintarTool();
+    document.getElementById('avStats').innerHTML='';
     const cont=document.getElementById('avCuerpo');
     const prog=progClave();
     if(!pedidos.length||!prog){
       cont.innerHTML=`<div class="av-vacio"><b>Carga una programación</b>Abre la del día desde 🗂️ Historial (o sube el Excel, asigna y guarda). Aquí verás cómo avanza cada camión.</div>`;
-      document.getElementById('avStats').innerHTML='';document.getElementById('avAvisos').innerHTML='';
+      document.getElementById('avAvisos').innerHTML='';cerrarPanel();
       return;
     }
     const sg=sinGuardar(prog);
@@ -4643,83 +4912,217 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
     else if(sg==='cambios')avisos+=`<div class="av-aviso"><b>Hay cambios sin guardar.</b> Los conductores siguen viendo la versión anterior hasta que presiones 💾 Guardar programación.</div>`;
     document.getElementById('avAvisos').innerHTML=avisos;
 
-    const tot={}, filasInc=[];
-    let nTot=0;
-    const tarjetas=unidades.map(u=>{
-      const ps=pedidos.filter(p=>p.unitId===u.id&&!p.baja).sort((a,b)=>(a.seq||999)-(b.seq||999));
-      if(!ps.length)return '';
-      const filas=ps.map(p=>{const e=estadoDe(prog,p);return {p,e,est:(e&&e.estado)||'EN RUTA',ord:(e&&+e.ordenVisita)||0};});
-      /* orden de visita del chofer: ¿lo puso? ¿difiere de lo programado? */
-      const conOrd=filas.filter(f=>f.ord);
-      const distinto=conOrd.some((f,i)=>i&&f.ord<conOrd[i-1].ord);
-      /* la ruta se lee en el orden en que el chofer la va a visitar (lo no numerado, al final en el orden programado) */
-      filas.sort((a,b)=>(a.ord||1e6)-(b.ord||1e6)||(a.p.seq||999)-(b.p.seq||999));
-      const c={};filas.forEach(f=>{c[f.est]=(c[f.est]||0)+1;tot[f.est]=(tot[f.est]||0)+1;nTot++;});
-      const hechas=filas.filter(f=>AV_FINAL[f.est]).length;
-      const pct=Math.round(hechas/filas.length*100);
-      const ahora=filas.find(f=>f.est==='EN PROCESO');
-      const sig=filas.find(f=>f.est==='EN RUTA');
-      const ult=filas.map(f=>f.e&&f.e.actualizado).filter(Boolean).sort().slice(-1)[0];
-      filas.forEach(f=>{if(f.est==='ANULADO'||f.est==='ENTREGA PARCIAL')filasInc.push({u,f});});
-      let info='';
-      if(ahora){
-        const m=minEntre(ahora.e.horaLlegada);
-        info+=`<div class="ahora">⏱ En ${esc(tit(ahora.p.CLIENTES))} desde ${esc(hm(ahora.e.horaLlegada))}${m!=null?` · <span class="${m>AV_ESPERA?'lento':''}">${m} min</span>`:''}</div>`;
+    const D=construir(prog);
+    if(!D.camiones.length&&!D.sinAsignar.length){
+      cont.innerHTML=`<div class="av-vacio"><b>Ningún camión tiene facturas asignadas</b>Asigna los pedidos en "1 · Armar Ruta" y guarda la programación.</div>`;
+      return;
+    }
+    if(avF.placa&&avF.placa!=='__sin'&&!D.camiones.some(C=>C.u.placa===avF.placa))avF.placa='';
+    cont.innerHTML=barra(D)+(avVista==='tabla'?vistaTabla(D):vistaTablero(D));
+    enlazar(D);
+    if(avVista==='tablero')ajustarAlto();
+    if(tbSel)pintarPanel(D);
+  }
+
+  /* ---------- barra superior: avance, estados (que también filtran) y filtros ---------- */
+  function barra(D){
+    const t=D.tot,n=D.nTot,hechas=(t['TERMINADO']||0)+(t['ENTREGA PARCIAL']||0)+(t['ANULADO']||0);
+    const pct=n?Math.round(hechas/n*100):0;
+    const COL={'pend':'#5b6573','EN PROCESO':'#f59e0b','TERMINADO':'#16a34a','ENTREGA PARCIAL':'#8b5cf6','ANULADO':'#dc2626','SIN ASIGNAR':'#c08a1e'};
+    const cuenta=k=>k==='pend'?(t['EN RUTA']||0)+(t['EN PROCESO']||0):(t[k]||0);
+    const chips=ESTF.filter(([k])=>k!=='SIN ASIGNAR'||t['SIN ASIGNAR']).map(([k,l])=>
+      `<button class="tb-est${avF.est===k?' on':''}" data-tbest="${escAttr(k)}" aria-pressed="${avF.est===k}"><i style="background:${COL[k]}"></i><b>${cuenta(k)}</b> ${esc(l)}</button>`).join('');
+    const zonas=[...new Set(todasLasFilas(D).map(f=>zonaDe(f.p)))].sort();
+    const optPl=`<option value="">Todas las placas</option>`+D.camiones.map(C=>`<option value="${escAttr(C.u.placa||'')}" ${avF.placa===C.u.placa?'selected':''}>${esc((C.u.ruta?C.u.ruta+' · ':'')+(C.u.placa||'Sin placa'))}</option>`).join('')+
+      (D.sinAsignar.length?`<option value="__sin" ${avF.placa==='__sin'?'selected':''}>Sin camión</option>`:'');
+    const optZo=`<option value="">Todas las zonas</option>`+zonas.map(z=>`<option value="${escAttr(z)}" ${avF.zona===z?'selected':''}>${esc(tit(z))}</option>`).join('');
+    const activo=avF.placa||avF.zona||avF.q||avF.est;
+    return `<div class="tb-barra">
+      <div class="tb-avance" title="${hechas} de ${n} facturas atendidas"><b>${pct}%</b><span>${hechas}/${n}</span>
+        <div class="tb-barrita">${['TERMINADO','ENTREGA PARCIAL','ANULADO','EN PROCESO'].filter(k=>t[k]).map(k=>`<span style="width:${t[k]/Math.max(1,n)*100}%;background:${COL[k]}"></span>`).join('')}</div></div>
+      <div class="tb-ests" role="group" aria-label="Filtrar por estado">${chips}</div>
+      <div class="tb-filtros">
+        <select id="tbPlaca" aria-label="Filtrar por placa">${optPl}</select>
+        <select id="tbZona" aria-label="Filtrar por zona">${optZo}</select>
+        <input id="tbBusca" type="search" placeholder="Cliente, factura o asesor" value="${escAttr(avF.q)}" aria-label="Filtrar por cliente">
+        ${activo?'<button class="tb-limpiar" id="tbLimpiar">Quitar filtros</button>':''}
+      </div></div>`;
+  }
+
+  /* ---------- tablero ---------- */
+  function vistaTablero(D){
+    let rows=D.camiones.filter(C=>!avF.placa||C.u.placa===avF.placa);
+    const verSin=D.sinAsignar.length&&(!avF.placa||avF.placa==='__sin');
+    if(avF.placa==='__sin')rows=[];
+    const filtro=hayFiltro();
+    const maxP=Math.max(6,...rows.map(C=>C.paradas.length),verSin?Math.min(D.sinAsignar.length,14):0);
+    const N=Math.min(maxP,24);
+    let html=`<div class="tb-board" id="tbBoard" style="--n:${N}">`;
+    html+=`<div class="tb-row tb-head" aria-hidden="true"><div class="tb-cab">Camión</div>${Array.from({length:N},(_,i)=>`<div class="tb-col">${i+1}°</div>`).join('')}</div>`;
+    let coinc=0;
+    rows.forEach(C=>{
+      const u=C.u;
+      const tiles=C.paradas.slice(0,N).map((s,i)=>{
+        const ok=!filtro||s.filas.some(coincide);if(ok&&filtro)coinc+=s.filas.filter(coincide).length;
+        return mosaico(C,s,i,ok);
+      }).join('');
+      const extra=C.paradas.length>N?`<div class="tb-mas">+${C.paradas.length-N}</div>`:'';
+      const algun=!filtro||C.filas.some(coincide);
+      let linea='';
+      if(C.ahora){const m=minEntre(C.ahora.e&&C.ahora.e.horaLlegada);
+        linea=`<span class="tb-ahora">⏱ ${esc(corto(C.ahora.p.CLIENTES))}${m!=null?` <b class="${m>AV_ESPERA?'lento':''}">${m}′</b>`:''}</span>`;}
+      else if(C.sig)linea=`<span class="tb-sig">→ ${esc(corto(C.sig.peds[0].CLIENTES))}</span>`;
+      else linea=`<span class="tb-fin">✓ Terminó${C.fin?' '+esc(hm(C.fin)):''}</span>`;
+      const ord=C.fConf?`<span class="tb-lock" title="Orden confirmado${C.fConf.e.ordenConfirmadoPor?' por '+escAttr(C.fConf.e.ordenConfirmadoPor):''}${C.distinto?' · distinto al programado':''}">🔒${C.distinto?' ≠ prog.':''}</span>`
+        :C.conOrd.length?`<span class="tb-gris" title="El chofer está armando su orden">🔢 sin confirmar</span>`:`<span class="tb-gris" title="El chofer aún no ordena su ruta: se muestra el orden programado">🔢 orden prog.</span>`;
+      html+=`<div class="tb-row${C.ahora?' vivo':''}${algun?'':' apagada'}" data-tbrow="${u.id}">
+        <div class="tb-cab">
+          <button class="tb-placa" data-tbplaca="${escAttr(u.placa||'')}" title="Ver solo este camión"><span class="av-ruta">${esc(u.ruta||'·')}</span><span><b>${esc(u.placa||'Sin placa')}</b><small>${esc(tit(u.personal||''))}</small></span></button>
+          <div class="tb-prog"><b>${C.pct}%</b> ${C.hechas}/${C.filas.length}<div class="tb-mini">${C.filas.map(f=>`<span style="background:${AV_EST[f.est].c}"></span>`).join('')}</div></div>
+          <div class="tb-linea">${linea}${ord}${esAdmin()?`<button class="tb-ord" data-avord="${u.id}" title="Editar orden de visita (solo admin)" aria-label="Editar orden de visita de ${escAttr(u.placa||'')}">✏️</button>`:''}</div>
+        </div>${tiles}${extra}</div>`;
+    });
+    if(verSin){
+      const tiles=D.sinAsignar.slice(0,N).map((f,i)=>{const ok=!filtro||coincide(f);if(ok&&filtro)coinc++;
+        return `<button class="tb-tile SIN${ok?'':' dim'}" data-tbsin="${i}" title="${escAttr(tit(f.p.CLIENTES)+' · '+(f.p.FACTURA||'')+' · '+tit(f.p.DISTRITO))}"><span class="tb-top"><span class="tb-n sin">—</span></span><span class="tb-c">${esc(corto(f.p.CLIENTES))}</span><span class="tb-f">${esc(f.p.FACTURA||'')}</span></button>`;}).join('');
+      html+=`<div class="tb-row tb-sinrow"><div class="tb-cab"><button class="tb-placa" data-tbplaca="__sin"><span class="av-ruta sin">—</span><span><b>Sin camión</b><small>retiros y garantías</small></span></button><div class="tb-prog">${D.sinAsignar.length} pedido(s)</div></div>${tiles}${D.sinAsignar.length>N?`<div class="tb-mas">+${D.sinAsignar.length-N}</div>`:''}</div>`;
+    }
+    html+=`</div>`;
+    const pie=filtro?`<div class="tb-pie">${coinc} factura(s) coinciden con el filtro · lo demás queda atenuado para no perder el orden</div>`
+      :`<div class="tb-pie">Toca un cliente para ver sus facturas · la columna es el orden de visita del chofer (o el programado si aún no lo ordena)</div>`;
+    return html+pie;
+  }
+  function mosaico(C,s,i,ok){
+    const p0=s.peds[0];
+    const hs=s.filas.map(f=>f.e).filter(Boolean);
+    const fin=hs.map(e=>e.horaFin).filter(Boolean).sort().slice(-1)[0];
+    const lleg=hs.map(e=>e.horaLlegada).filter(Boolean).sort()[0];
+    const hora=AV_FINAL[s.est]?hm(fin):s.est==='EN PROCESO'?hm(lleg):'';
+    const esSig=C.sig===s;
+    const zc=zColor(p0.ZONA);
+    const tip=tit(p0.CLIENTES)+' · '+tit(p0.DISTRITO)+' · '+tit(p0.ZONA||'')+'\n'+(s.ord?'Visita '+s.ord:'Sin orden del chofer')+' · prog. '+s.n+'\n'+s.filas.map(f=>(f.p.FACTURA||'sin factura')+' — '+f.est).join('\n');
+    return `<button class="tb-tile ${AV_EST[s.est].cls}${esSig?' sig':''}${ok?'':' dim'}" data-tbtile="${C.u.id}|${i}" title="${escAttr(tip)}">
+      <span class="tb-top"><span class="tb-n${s.ord?'':' sin'}">${s.ord||s.n}</span>${s.peds.length>1?`<span class="tb-x">×${s.peds.length}</span>`:''}<span class="tb-h">${esc(hora)}</span></span>
+      <span class="tb-c">${esc(corto(p0.CLIENTES))}</span>
+      <span class="tb-f"><i style="background:${zc}"></i>${esc(tit(p0.DISTRITO))}</span></button>`;
+  }
+  /* alto exacto de la ventana: el tablero nunca obliga a desplazarse */
+  function ajustarAlto(){
+    const b=document.getElementById('tbBoard');if(!b)return;
+    if(window.innerWidth<=760){b.style.height='';b.dataset.densidad='amplia';return;}
+    const top=b.getBoundingClientRect().top+window.scrollY;
+    const pie=26;
+    const h=Math.max(360,window.innerHeight-top-pie-14);
+    b.style.height=h+'px';
+    const filas=b.querySelectorAll('.tb-row:not(.tb-head)').length||1;
+    const alto=(h-24)/filas;
+    b.dataset.densidad=alto<62?'min':alto<90?'media':'amplia';
+  }
+  window.addEventListener('resize',()=>{if(vistaActiva()&&avVista==='tablero')ajustarAlto();});
+
+  /* ---------- panel de detalle (derecha) ---------- */
+  function pintarPanel(D){
+    let pn=document.getElementById('tbPanel');
+    if(!pn){pn=document.createElement('aside');pn.id='tbPanel';pn.className='tb-panel';pn.setAttribute('aria-label','Detalle de la parada');document.body.appendChild(pn);}
+    let titulo='',sub='',filas=[];
+    if(tbSel.sin!=null){const f=D.sinAsignar[tbSel.sin];if(!f){cerrarPanel();return;}
+      titulo=tit(f.p.CLIENTES);sub='Sin camión asignado · '+tit(f.p.DISTRITO);filas=[f];}
+    else{const C=D.camiones.find(x=>x.u.id===tbSel.uid);const s=C&&C.paradas[tbSel.i];if(!s){cerrarPanel();return;}
+      titulo=tit(s.peds[0].CLIENTES);
+      sub=(C.u.placa||'')+' · Ruta '+(C.u.ruta||'')+' · '+(s.ord?'visita '+s.ord:'sin orden del chofer')+' · prog. '+s.n;filas=s.filas;}
+    const p0=filas[0].p;
+    pn.innerHTML=`<div class="tb-p-h"><div><h3>${esc(titulo)}</h3><div class="tb-p-sub">${esc(sub)}</div></div><button class="tb-p-x" id="tbPx" aria-label="Cerrar">×</button></div>
+      <div class="tb-p-meta"><span>📍 ${esc(tit(p0.DISTRITO))}</span><span><i style="background:${zColor(p0.ZONA)}"></i>${esc(tit(p0.ZONA||'sin zona'))}</span>${p0.TIPO?`<span>${esc(tit(p0.TIPO))}</span>`:''}</div>
+      ${filas.map(f=>{const e=f.e||{};const m=minFila(f);
+        const nota=f.est==='ANULADO'?e.motivo:f.est==='ENTREGA PARCIAL'?e.detalle:'';
+        return `<div class="tb-p-fac">
+          <div class="tb-p-fac-h"><b>${esc(f.p.FACTURA||'Sin factura')}</b>${!f.u?'<span class="av-est SIN">SIN CAMIÓN</span>':puedeEditar()?`<button class="av-est ${AV_EST[f.est].cls}" data-aved="${escAttr(f.p.id)}" title="Corregir estado">${esc(f.est)} ✎</button>`:`<span class="av-est ${AV_EST[f.est].cls}">${esc(f.est)}</span>`}</div>
+          <dl><dt>Asesor</dt><dd>${esc(tit(f.p.ASESOR||'—'))}</dd>
+          <dt>Unidades</dt><dd>${num(f.p['UNIDADES COMPLETAS'])||0} compl. · ${num(f.p['UNIDADES PARTES'])||0} partes</dd>
+          ${e.horaLlegada?`<dt>Llegó</dt><dd>${esc(hm(e.horaLlegada))}</dd>`:''}${e.horaFin?`<dt>Terminó</dt><dd>${esc(hm(e.horaFin))}</dd>`:''}
+          ${m!=null&&m>=0?`<dt>En el cliente</dt><dd class="${m>AV_ESPERA&&f.est==='EN PROCESO'?'lento':''}">${m} min</dd>`:''}
+          ${nota?`<dt>${f.est==='ANULADO'?'Motivo':'Rechazado'}</dt><dd class="${f.est==='ANULADO'?'mot':'det'}">${esc(nota)}</dd>`:''}
+          ${f.p.OBSERVACION?`<dt>Observación</dt><dd>${esc(f.p.OBSERVACION)}</dd>`:''}</dl></div>`;}).join('')}`;
+    pn.classList.add('abierto');
+    document.getElementById('tbPx').onclick=cerrarPanel;
+    pn.querySelectorAll('[data-aved]').forEach(b=>b.onclick=()=>abrirEdicion(+b.dataset.aved));
+    document.querySelectorAll('.tb-tile.elegido').forEach(x=>x.classList.remove('elegido'));
+    const sel=tbSel.sin!=null?document.querySelector(`[data-tbsin="${tbSel.sin}"]`):document.querySelector(`[data-tbtile="${tbSel.uid}|${tbSel.i}"]`);
+    if(sel)sel.classList.add('elegido');
+  }
+  function cerrarPanel(){tbSel=null;const pn=document.getElementById('tbPanel');if(pn)pn.classList.remove('abierto');
+    document.querySelectorAll('.tb-tile.elegido').forEach(x=>x.classList.remove('elegido'));}
+  document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&tbSel&&!document.querySelector('.modal-bg.show'))cerrarPanel();});
+
+  /* ---------- tabla: misma información, una fila por factura, mismos filtros ---------- */
+  function vistaTabla(D){
+    const filas=todasLasFilas(D).filter(coincide);
+    let html='',grupo=null;const COLS=16;
+    filas.forEach(f=>{
+      const g=f.u?f.u.id:'sin';
+      if(g!==grupo){
+        grupo=g;
+        if(f.u){const C=D.camiones.find(x=>x.u.id===f.u.id);
+          html+=`<tr class="grp"><td colspan="${COLS}"><span class="av-ruta mini">${esc(f.u.ruta||'·')}</span><b>${esc(f.u.placa||'Sin placa')}</b><span class="g-pers">${esc(tit(f.u.personal||''))}</span>
+            <span class="g-av">${C.hechas}/${C.filas.length} · ${C.pct}%</span>${C.fConf?'<span class="g-lock">🔒 orden confirmado</span>':C.conOrd.length?'<span class="g-gris">orden sin confirmar</span>':'<span class="g-gris">sin orden del chofer</span>'}</td></tr>`;}
+        else html+=`<tr class="grp sin"><td colspan="${COLS}"><b>Sin camión asignado</b><span class="g-pers">retiros, garantías u otros pedidos fuera de ruta</span></td></tr>`;
       }
-      if(sig)info+=`<div>Siguiente: ${esc(tit(sig.p.CLIENTES))} · ${esc(tit(sig.p.DISTRITO))}</div>`;
-      else if(hechas===filas.length)info+=`<div style="color:#15803d;font-weight:600">✓ Ruta terminada${(()=>{const f=filas.map(x=>x.e&&x.e.horaFin).filter(Boolean).sort().slice(-1)[0];return f?' a las '+esc(hm(f)):''})()}</div>`;
-      const fConf=filas.find(f=>f.e&&f.e.ordenConfirmado);
-      const dif=distinto?' · <b style="color:#9a4a07">distinto al programado</b>':' · igual al programado';
-      info+=fConf
-        ?`<div class="av-lock">🔒 Orden confirmado${fConf.e.ordenConfirmadoPor?' por '+esc(fConf.e.ordenConfirmadoPor):''}${fConf.e.ordenConfirmadoEn?' a las '+esc(hm(fConf.e.ordenConfirmadoEn)):''}<span style="color:#3a4652">${dif}</span></div>`
-        :conOrd.length
-          ?`<div>🔢 Orden en armado por el chofer, aún sin confirmar${dif}</div>`
-          :`<div style="color:#8a96a3">🔢 El chofer aún no ordenó su ruta</div>`;
-      info+=`<div style="color:#8a96a3">${ult?'Último reporte '+esc(hm(ult))+(ult.slice(0,10)!==fechaISO(progFechaActual())?' del '+esc(ult.slice(8,10)+'/'+ult.slice(5,7)):''):'Aún sin reportes del conductor'}</div>`;
-      const abierta=avAbiertas.has(u.id);
-      const tabla=abierta?`<div class="av-scroll"><table class="av-tabla"><thead><tr><th title="Orden de visita que puso el chofer">Visita</th><th title="N° programado en el planificador">Prog.</th><th>Cliente / factura</th><th>Estado</th><th>Llegó</th><th>Fin</th><th>Min</th></tr></thead><tbody>${
-        filas.map(f=>{const e=f.e||{};const m=e.horaLlegada&&e.horaFin?minEntre(e.horaLlegada,e.horaFin):(f.est==='EN PROCESO'?minEntre(e.horaLlegada):null);
-          return `<tr><td class="n" style="color:var(--negro)">${f.ord||'—'}</td><td class="n">${f.p.seq||''}</td><td><div class="cli">${esc(tit(f.p.CLIENTES))}</div><div class="sub">${esc(f.p.FACTURA||'sin factura')} · ${esc(tit(f.p.DISTRITO))}</div>
-            ${f.est==='ANULADO'&&e.motivo?`<div class="mot">Motivo: ${esc(e.motivo)}</div>`:''}${f.est==='ENTREGA PARCIAL'&&e.detalle?`<div class="det">Rechazado: ${esc(e.detalle)}</div>`:''}</td>
-            <td>${puedeEditar()?`<button class="av-est ${AV_EST[f.est].cls}" data-aved="${escAttr(f.p.id)}" title="Corregir estado">${esc(f.est)}</button>`:`<span class="av-est ${AV_EST[f.est].cls}">${esc(f.est)}</span>`}</td>
-            <td>${esc(hm(e.horaLlegada))}</td><td>${esc(hm(e.horaFin))}</td><td>${m!=null&&m>=0?`<span class="${m>AV_ESPERA&&f.est==='EN PROCESO'?'lento':''}" style="${m>AV_ESPERA&&f.est==='EN PROCESO'?'color:#b91c1c;font-weight:700':''}">${m}</span>`:''}</td></tr>`;}).join('')
-      }</tbody></table></div>`:'';
-      return `<div class="av-card${ahora?' vivo':''}">
-        <div class="av-ch"><div class="av-ruta">${esc(u.ruta||'·')}</div>
-          <div><div class="av-placa">${esc(u.placa||'Sin placa')}</div><div class="av-pers">${esc(tit(u.personal||''))}</div></div>
-          <div class="av-pct"><b>${pct}%</b><small>${hechas} de ${filas.length} facturas</small></div></div>
-        <div class="av-tramos">${filas.map(f=>`<span style="background:${AV_EST[f.est].c}" title="${escAttr((f.p.seq||'')+'. '+tit(f.p.CLIENTES)+' — '+f.est)}"></span>`).join('')}</div>
-        <div class="av-info">${info}</div>
-        <div class="av-cnt">${AV_ORDEN.filter(k=>c[k]).map(k=>`<span><i style="background:${AV_EST[k].c}"></i>${c[k]} ${esc(k.toLowerCase())}</span>`).join('')}</div>
-        <div class="av-pie"><button class="av-tg" data-avtg="${u.id}">${abierta?'▾ Ocultar facturas':'▸ Ver facturas ('+filas.length+')'}</button>
-          ${esAdmin()?`<button class="av-ord-btn" data-avord="${u.id}" title="Solo el supervisor (admin) puede cambiar el orden de visita">✏️ Editar orden</button>`:''}</div>${tabla}</div>`;
-    }).join('');
+      const e=f.e||{};const m=minFila(f);
+      const lento=m!=null&&m>AV_ESPERA&&f.est==='EN PROCESO';
+      const estCel=!f.u?`<span class="av-est SIN">SIN CAMIÓN</span>`
+        :puedeEditar()?`<button class="av-est ${AV_EST[f.est].cls}" data-aved="${escAttr(f.p.id)}" title="Corregir estado">${esc(f.est)}</button>`
+        :`<span class="av-est ${AV_EST[f.est].cls}">${esc(f.est)}</span>`;
+      const nota=f.est==='ANULADO'?e.motivo:f.est==='ENTREGA PARCIAL'?e.detalle:'';
+      html+=`<tr class="r-${f.u?AV_EST[f.est].cls:'SIN'}">
+        <td class="pl">${f.u?`<b>${esc(f.u.placa||'')}</b>`:'—'}</td>
+        <td class="num fuerte">${f.ord||(f.u?'—':'')}</td><td class="num">${f.u?(f.p.seq||''):''}</td>
+        <td class="cli">${esc(tit(f.p.CLIENTES))}</td><td class="mono">${esc(f.p.FACTURA||'—')}</td>
+        <td>${esc(tit(f.p.DISTRITO))}</td><td><span class="zdot" style="background:${zColor(f.p.ZONA)}"></span>${esc(tit(f.p.ZONA||''))}</td><td class="ase">${esc(tit(f.p.ASESOR||''))}</td>
+        <td>${estCel}</td><td class="num">${esc(hm(e.horaLlegada))}</td><td class="num">${esc(hm(e.horaFin))}</td>
+        <td class="num${lento?' lento':''}">${m!=null&&m>=0?m:''}</td>
+        <td class="num">${num(f.p['UNIDADES COMPLETAS'])||''}</td><td class="num">${num(f.p['UNIDADES PARTES'])||''}</td>
+        <td class="nota">${nota?`<span class="${f.est==='ANULADO'?'mot':'det'}">${esc(nota)}</span>`:''}</td>
+        <td class="obs">${esc(f.p.OBSERVACION||'')}</td></tr>`;
+    });
+    if(!filas.length)html=`<tr><td colspan="${COLS}" class="av-vacio-td">Ninguna factura coincide con el filtro.</td></tr>`;
+    return `<div class="av-gen"><div class="av-gen-cont"><table class="av-gtab">
+        <thead><tr><th>Placa</th><th title="Orden de visita del chofer">Visita</th><th title="N° programado">Prog.</th><th>Cliente</th><th>Factura</th><th>Distrito</th><th>Zona</th><th>Asesor</th><th>Estado</th><th>Llegó</th><th>Fin</th><th title="Minutos en el cliente">Min</th><th title="Unidades completas">Compl.</th><th title="Unidades partes">Partes</th><th>Motivo / rechazo</th><th>Observación</th></tr></thead>
+        <tbody>${html}</tbody></table></div>
+      <div class="av-gen-pie">${filas.length} de ${todasLasFilas(D).length} facturas · ordenadas por camión y orden de visita</div></div>`;
+  }
 
-    /* resumen general */
-    const hechasTot=(tot['TERMINADO']||0)+(tot['ENTREGA PARCIAL']||0)+(tot['ANULADO']||0);
-    const pctTot=nTot?Math.round(hechasTot/nTot*100):0;
-    document.getElementById('avStats').innerHTML=nTot?`
-      <div class="stat s-tot" style="flex:2;min-width:220px"><div class="v">${pctTot}% <span style="font-size:12px;font-weight:600;color:#5a6b7a">${hechasTot} de ${nTot} facturas atendidas</span></div>
-        <div class="av-barra-tot">${AV_ORDEN.filter(k=>tot[k]).map(k=>`<span style="width:${tot[k]/nTot*100}%;background:${AV_EST[k].c}" title="${tot[k]} ${k.toLowerCase()}"></span>`).join('')}</div></div>
-      <div class="stat s-term"><div class="v" style="color:#15803d">${tot['TERMINADO']||0}</div><div class="l">Terminado</div></div>
-      <div class="stat s-parc"><div class="v" style="color:#6d28d9">${tot['ENTREGA PARCIAL']||0}</div><div class="l">Entrega parcial</div></div>
-      <div class="stat s-anul"><div class="v" style="color:#b91c1c">${tot['ANULADO']||0}</div><div class="l">Anulado</div></div>
-      <div class="stat s-proc"><div class="v" style="color:#b45309">${tot['EN PROCESO']||0}</div><div class="l">En proceso</div></div>
-      <div class="stat s-ruta"><div class="v" style="color:#5b6573">${tot['EN RUTA']||0}</div><div class="l">En ruta</div></div>`:'';
-
-    const inc=filasInc.length?`<div class="panel av-inc"><div class="panel-h"><span>⚠️ Anulados y entregas parciales</span><span>${filasInc.length}</span></div>
-      <div class="av-scroll"><table class="av-tabla"><thead><tr><th>Camión</th><th>Cliente / factura</th><th>Estado</th><th>Hora</th><th>Motivo / qué se rechazó</th></tr></thead><tbody>${
-      filasInc.map(({u,f})=>`<tr><td><b>${esc(u.placa||'')}</b><div class="sub">Ruta ${esc(u.ruta||'')}</div></td>
-        <td><div class="cli">${esc(tit(f.p.CLIENTES))}</div><div class="sub">${esc(f.p.FACTURA||'sin factura')}</div></td>
-        <td><span class="av-est ${AV_EST[f.est].cls}">${esc(f.est)}</span></td><td>${esc(hm(f.e&&f.e.horaFin))}</td>
-        <td>${esc((f.e&&(f.est==='ANULADO'?f.e.motivo:f.e.detalle))||'—')}</td></tr>`).join('')}</tbody></table></div></div>`:'';
-
-    cont.innerHTML=tarjetas.trim()
-      ?inc+`<div class="av-grid">${tarjetas}</div>`
-      :`<div class="av-vacio"><b>Ningún camión tiene facturas asignadas</b>Asigna los pedidos en "1 · Armar Ruta" y guarda la programación.</div>`;
-    cont.querySelectorAll('[data-avtg]').forEach(b=>b.onclick=()=>{const id=+b.dataset.avtg;avAbiertas.has(id)?avAbiertas.delete(id):avAbiertas.add(id);avPintar();});
+  /* ---------- eventos ---------- */
+  function enlazar(D){
+    const cont=document.getElementById('avCuerpo');
+    cont.querySelectorAll('[data-tbest]').forEach(b=>b.onclick=()=>{avF.est=avF.est===b.dataset.tbest?'':b.dataset.tbest;avPintar();});
+    cont.querySelectorAll('[data-tbplaca]').forEach(b=>b.onclick=()=>{avF.placa=avF.placa===b.dataset.tbplaca?'':b.dataset.tbplaca;avPintar();});
+    cont.querySelectorAll('[data-tbtile]').forEach(b=>b.onclick=()=>{const [u,i]=b.dataset.tbtile.split('|');tbSel={uid:+u,i:+i};pintarPanel(D);});
+    cont.querySelectorAll('[data-tbsin]').forEach(b=>b.onclick=()=>{tbSel={sin:+b.dataset.tbsin};pintarPanel(D);});
     cont.querySelectorAll('[data-aved]').forEach(b=>b.onclick=()=>abrirEdicion(+b.dataset.aved));
-    cont.querySelectorAll('[data-avord]').forEach(b=>b.onclick=()=>abrirOrden(+b.dataset.avord));
+    cont.querySelectorAll('[data-avord]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();abrirOrden(+b.dataset.avord);});
+    const pl=document.getElementById('tbPlaca');if(pl)pl.onchange=()=>{avF.placa=pl.value;avPintar();};
+    const zo=document.getElementById('tbZona');if(zo)zo.onchange=()=>{avF.zona=zo.value;avPintar();};
+    const q=document.getElementById('tbBusca');
+    if(q)q.oninput=()=>{avF.q=q.value;const pos=q.selectionStart;avPintar();const n=document.getElementById('tbBusca');if(n){n.focus();try{n.setSelectionRange(pos,pos);}catch(e){}}};
+    const lp=document.getElementById('tbLimpiar');if(lp)lp.onclick=()=>{avF={placa:'',zona:'',q:'',est:''};avPintar();};
+  }
+
+  function exportarExcel(D){
+    if(typeof XLSX==='undefined'){alert('No se pudo cargar el componente de Excel. Revisa tu conexión y recarga la página.');return;}
+    const d=progFechaActual();
+    const filas=todasLasFilas(D).filter(coincide).map(f=>{const e=f.e||{};const m=minFila(f);
+      return {'Fecha':d?fechaPE(d):'','Turno':turnoLbl(turnoActual),'Ruta':f.u?(f.u.ruta||''):'','Placa':f.u?(f.u.placa||''):'SIN CAMIÓN',
+        'Personal':f.u?(f.u.personal||''):'','Orden visita':f.ord||'','N° programado':f.u?(f.p.seq||''):'',
+        'Cliente':f.p.CLIENTES||'','Factura':f.p.FACTURA||'','Distrito':f.p.DISTRITO||'','Zona':f.p.ZONA||'','Tipo':f.p.TIPO||'','Asesor':f.p.ASESOR||'',
+        'Estado':f.u?f.est:'SIN CAMIÓN','Llegó':hm(e.horaLlegada),'Terminó':hm(e.horaFin),'Min en cliente':m!=null&&m>=0?m:'',
+        'Unid. completas':num(f.p['UNIDADES COMPLETAS'])||0,'Unid. partes':num(f.p['UNIDADES PARTES'])||0,
+        'Motivo / rechazo':(f.est==='ANULADO'?e.motivo:f.est==='ENTREGA PARCIAL'?e.detalle:'')||'','Observación':f.p.OBSERVACION||''};});
+    if(!filas.length){alert('No hay filas para descargar con el filtro actual.');return;}
+    const ws=XLSX.utils.json_to_sheet(filas);
+    ws['!cols']=[10,11,5,10,22,7,8,30,13,18,10,10,22,15,7,8,8,8,8,28,28].map(w=>({wch:w}));
+    ws['!autofilter']={ref:ws['!ref']};
+    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Avance');
+    XLSX.writeFile(wb,'Avance_de_ruta_'+(d?fechaPE(d).replace(/\//g,'-'):'')+'_'+(turnoActual==='2'?'2do':'1er')+'_turno.xlsx');
   }
 
   function actualizarConteo(){
@@ -4749,8 +5152,8 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
       const ords=s.peds.map(p=>{const e=estadoDe(prog,p);return e?+e.ordenVisita||0:0;}).filter(Boolean);
       s.ord=ords.length?Math.min(...ords):0;
       s.conf=s.peds.some(p=>{const e=estadoDe(prog,p);return e&&e.ordenConfirmado;});
-      const est=s.peds.map(p=>{const e=estadoDe(prog,p);return (e&&e.estado)||'EN RUTA';});
-      s.est=est.every(x=>x==='TERMINADO')?'TERMINADO':est.some(x=>x!=='EN RUTA')?est.find(x=>x!=='EN RUTA'):'EN RUTA';});
+      s.ests=s.peds.map(p=>{const e=estadoDe(prog,p);return (e&&e.estado)||'EN RUTA';});
+      s.est=estadoParada(s.ests);});
     return out.sort((a,b)=>(a.ord||1e6)-(b.ord||1e6)||a.n-b.n);
   }
   function abrirOrden(uid){
@@ -4847,6 +5250,7 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
 
   /* ---------- enganche con el planificador ---------- */
   document.querySelector('.tab[data-view="avance"]').addEventListener('click',()=>{avPintar();avCargar(false);});
+  document.querySelectorAll('.tab').forEach(t=>{if(t.dataset.view!=='avance')t.addEventListener('click',cerrarPanel);});
   setInterval(()=>{
     if(avAuto&&vistaActiva()&&!document.hidden&&!document.querySelector('#avModal.show,#avOrdModal.show'))avCargar(true);
   },60000);
