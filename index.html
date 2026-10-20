@@ -705,6 +705,7 @@ button.ia:hover{background:linear-gradient(100deg,#2d2d2d 0%,#4c1d95 55%,#7c3aed
   <div class="tab" data-view="gps">2 · Optimizar GPS <span class="cnt" id="cntGps">0</span></div>
   <div class="tab" data-view="hoja">3 · Hoja de Ruta <span class="cnt" id="cntAsig">0</span></div>
   <div class="tab" data-view="mapa">4 · Mapa <span class="cnt" id="cntMapa">0</span></div>
+  <div class="tab" data-view="avance">5 · Avance de Ruta <span class="cnt" id="cntAvance">—</span></div>
 </div>
 
 <!-- ============ VISTA ARMADO ============ -->
@@ -884,6 +885,14 @@ button.ia:hover{background:linear-gradient(100deg,#2d2d2d 0%,#4c1d95 55%,#7c3aed
   </div>
 </div>
 
+<!-- ============ VISTA AVANCE DE RUTA ============ -->
+<div class="view" id="view-avance">
+  <div class="av-tool" id="avTool"></div>
+  <div id="avAvisos"></div>
+  <div class="stats" id="avStats"></div>
+  <div class="wrap" id="avCuerpo"></div>
+</div>
+
 <!-- ============ MODAL SINCRONIZACIÓN ============ -->
 <!-- ============ MODAL USUARIOS ============ -->
 <div class="modal-bg" id="usrModal">
@@ -896,7 +905,7 @@ button.ia:hover{background:linear-gradient(100deg,#2d2d2d 0%,#4c1d95 55%,#7c3aed
           <div class="fld"><label style="font-size:10.5px;font-weight:600;color:var(--azul2)">Usuario</label><input type="text" id="usrNuevoUsuario" style="width:100%;padding:8px 10px;border:1px solid var(--borde);border-radius:7px;font-size:12.5px"></div>
           <div class="fld"><label style="font-size:10.5px;font-weight:600;color:var(--azul2)">Nombre</label><input type="text" id="usrNuevoNombre" style="width:100%;padding:8px 10px;border:1px solid var(--borde);border-radius:7px;font-size:12.5px"></div>
           <div class="fld"><label style="font-size:10.5px;font-weight:600;color:var(--azul2)">Contraseña</label><input type="text" id="usrNuevaClave" placeholder="(dejar vacío = no cambiar)" style="width:100%;padding:8px 10px;border:1px solid var(--borde);border-radius:7px;font-size:12.5px"></div>
-          <div class="fld"><label style="font-size:10.5px;font-weight:600;color:var(--azul2)">Rol</label><select id="usrNuevoRol" style="width:100%;padding:8px 10px;border:1px solid var(--borde);border-radius:7px;font-size:12.5px"><option value="editor">Editor (arma y guarda)</option><option value="visualizador">Visualizador (solo consulta)</option><option value="admin">Administrador (control total)</option></select></div>
+          <div class="fld"><label style="font-size:10.5px;font-weight:600;color:var(--azul2)">Rol</label><select id="usrNuevoRol" style="width:100%;padding:8px 10px;border:1px solid var(--borde);border-radius:7px;font-size:12.5px"><option value="editor">Editor (arma y guarda)</option><option value="visualizador">Visualizador (solo consulta · conductores)</option><option value="admin">Administrador (control total)</option></select></div>
         </div>
         <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
           <label style="font-size:12px;color:var(--azul2)"><input type="checkbox" id="usrNuevoActivo" checked style="vertical-align:-1px"> Activo</label>
@@ -2008,7 +2017,7 @@ const NUBE_URL_KEY='prove_nube_url';
    "Configurar servidor" y ese valor manda sobre este. */
 /* Sello de version: sirve para saber, sin adivinar, que archivo esta corriendo
    realmente el navegador (GitHub Pages y el cache del movil suelen servir uno viejo). */
-const APP_VERSION='2026-09-09 · planificador-2';
+const APP_VERSION='2026-10-20 · planificador-5';
 const NUBE_URL_DEFECTO='https://script.google.com/macros/s/AKfycbzPfXZFs9GVEfBfDERzGGzxO8OgoRaMOHIg_QO9jOpMP31BkvENFenAP9rubgh_GPcW4Q/exec';
 const SESION_KEY='prove_sesion';
 let sesion={usuario:'',clave:'',rol:'',nombre:''};
@@ -4420,5 +4429,435 @@ if (typeof module !== 'undefined') module.exports = IA;
 })();
 
 </script>
+<!-- ============ AVANCE DE RUTA (estados que marcan los conductores) ============ -->
+<style>
+#view-avance .av-tool{background:#fff;padding:11px 24px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--borde);}
+#view-avance .av-prog{font-weight:700;font-size:14px;color:var(--negro);}
+#view-avance .av-prog small{font-weight:500;color:#6a7b8a;margin-left:6px;}
+#view-avance .av-esp{flex:1;}
+#view-avance .av-upd{font-size:11.5px;color:#6a7b8a;}
+#view-avance .av-chk{font-size:12px;color:#3a4652;display:flex;align-items:center;gap:5px;}
+.av-aviso{margin:14px 24px 0;padding:10px 14px;border-radius:9px;font-size:13px;border:1px solid #f1c27d;background:#fff6e5;color:#7a4a05;}
+.av-aviso.err{border-color:#f0a8ae;background:#fdecee;color:#8a1020;}
+.av-aviso b{font-weight:700;}
+.av-barra-tot{height:14px;display:flex;border-radius:7px;overflow:hidden;background:#e1e5ea;margin-top:6px;}
+.av-barra-tot span{display:block;height:100%;}
+.av-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px;align-items:start;}
+#avStats:empty{display:none;}
+#avStats .stat.s-term::before{background:#16a34a}#avStats .stat.s-parc::before{background:#8b5cf6}#avStats .stat.s-anul::before{background:#dc2626}#avStats .stat.s-proc::before{background:#f59e0b}#avStats .stat.s-ruta::before{background:#9aa3ad}#avStats .stat.s-tot::before{background:var(--negro)}
+.av-card{background:#fff;border:1px solid var(--borde);border-radius:12px;overflow:hidden;}
+.av-card.vivo{border-color:#f0b35c;box-shadow:0 0 0 1px #f0b35c;}
+.av-ch{display:flex;align-items:center;gap:12px;padding:12px 14px 8px;}
+.av-ruta{width:40px;height:40px;border-radius:10px;background:var(--negro);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px;flex:none;}
+.av-placa{font-size:18px;font-weight:800;letter-spacing:.02em;color:var(--negro);}
+.av-pers{font-size:11.5px;color:#6a7b8a;}
+.av-pct{margin-left:auto;text-align:right;}
+.av-pct b{font-size:22px;color:var(--negro);display:block;line-height:1;}
+.av-pct small{font-size:11px;color:#6a7b8a;}
+.av-tramos{display:flex;gap:2px;padding:0 14px;height:12px;}
+.av-tramos span{flex:1;border-radius:2px;}
+.av-info{padding:9px 14px 4px;font-size:12.5px;color:#3a4652;line-height:1.5;}
+.av-info .ahora{color:#9a4a07;font-weight:600;}
+.av-info .lento{color:#b91c1c;font-weight:700;}
+.av-cnt{display:flex;flex-wrap:wrap;gap:4px 12px;padding:2px 14px 10px;font-size:11.5px;color:#5a6b7a;}
+.av-cnt i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px;}
+.av-tg{display:block;width:100%;border:0;border-top:1px solid #eef0f3;background:#fafbfc;padding:8px 14px;text-align:left;font-size:12px;font-weight:600;color:#3a4652;cursor:pointer;}
+.av-tg:hover{background:#f2f4f7;}
+.av-scroll{overflow-x:auto;}
+.av-pie{display:flex;border-top:1px solid #eef0f3;}
+.av-pie .av-tg{border-top:0;flex:1;}
+.av-ord-btn{border:0;border-left:1px solid #eef0f3;background:#fafbfc;padding:8px 14px;font-size:12px;font-weight:700;color:var(--rojo2);cursor:pointer;}
+.av-ord-btn:hover{background:#fdecee;}
+.av-lock{color:#15803d;}
+#avOrdModal .ord-l{display:flex;flex-direction:column;gap:6px;}
+#avOrdModal .ord-r{display:flex;align-items:center;gap:10px;border:1px solid var(--borde);border-radius:9px;padding:8px 10px;background:#fff;}
+#avOrdModal .ord-r.movido{border-color:var(--rojo);background:#fff7f8;}
+#avOrdModal .ord-n{width:30px;height:30px;border-radius:50%;background:var(--negro);color:#fff;display:grid;place-items:center;font-weight:800;font-size:14px;flex:none;}
+#avOrdModal .ord-t{flex:1;min-width:0;font-size:12.5px;}
+#avOrdModal .ord-t b{display:block;font-size:13px;color:var(--negro);}
+#avOrdModal .ord-t span{color:#6a7b8a;}
+#avOrdModal .ord-f button{border:1px solid var(--borde);background:#fff;color:var(--negro);border-radius:6px;width:32px;height:30px;padding:0;cursor:pointer;font-size:13px;font-weight:700;}
+#avOrdModal .ord-f button:hover:not(:disabled){background:var(--negro);color:#fff;}
+#avOrdModal .ord-f button:disabled{opacity:.3;cursor:default;}
+#avOrdModal .ord-est{font-size:10px;}
+.av-tabla{width:100%;border-collapse:collapse;font-size:12px;}
+.av-inc .av-tabla td:nth-child(2){min-width:150px}.av-inc .av-tabla td:last-child{min-width:160px}
+.av-tabla th{background:#f2f4f7;color:#5a6b7a;font-weight:600;font-size:10.5px;text-align:left;padding:6px 8px;}
+.av-tabla td{padding:7px 8px;border-top:1px solid #eef0f3;vertical-align:top;}
+.av-tabla td.n{color:#6a7b8a;font-weight:700;width:22px;}
+.av-tabla .cli{font-weight:600;color:var(--negro);}
+.av-tabla .sub{color:#6a7b8a;font-size:11px;}
+.av-tabla .mot{color:#b91c1c;font-size:11px;margin-top:2px;}
+.av-tabla .det{color:#6d28d9;font-size:11px;margin-top:2px;}
+.av-est{display:inline-block;font-size:10px;font-weight:700;border-radius:5px;padding:3px 7px;white-space:nowrap;border:0;font-family:inherit;}
+button.av-est{cursor:pointer;}
+button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
+.av-est.EN_RUTA{background:#eef0f3;color:#5b6573}.av-est.EN_PROCESO{background:#fff3dc;color:#b45309}
+.av-est.TERMINADO{background:#e3f5e9;color:#15803d}.av-est.ENTREGA_PARCIAL{background:#efe8fd;color:#6d28d9}.av-est.ANULADO{background:#fdeaea;color:#b91c1c}
+.av-inc{margin-bottom:16px;}
+.av-inc .panel-h{background:linear-gradient(90deg,#7a1212,var(--rojo));}
+.av-vacio{text-align:center;color:#6a7b8a;padding:50px 20px;font-size:14px;}
+.av-vacio b{display:block;color:var(--negro);font-size:16px;margin-bottom:6px;}
+.av-link{font-size:12px;}
+#avModal .opts{display:flex;flex-direction:column;gap:6px;}
+#avModal .opts label{display:flex;align-items:center;gap:9px;padding:9px 11px;border:1.5px solid var(--borde);border-radius:9px;cursor:pointer;font-size:13px;}
+#avModal .opts label:has(input:checked){border-color:var(--negro);background:#f6f7f9;}
+#avModal textarea{width:100%;min-height:70px;border:1.5px solid var(--borde);border-radius:8px;padding:8px;font:inherit;font-size:13px;margin-top:4px;}
+@media (max-width:640px){
+  #view-avance .av-tool,.av-aviso{margin-left:0;margin-right:0;padding-left:12px;padding-right:12px;}
+  .av-grid{grid-template-columns:1fr;}
+}
+</style>
+
+<div class="modal-bg" id="avOrdModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-h"><h2 id="avOrdTit">Orden de visita</h2><span class="x" id="avOrdX">×</span></div>
+    <div class="modal-b">
+      <div id="avOrdSub" style="font-size:12.5px;color:#5a6b7a;margin-bottom:10px"></div>
+      <div class="ord-l" id="avOrdLista"></div>
+      <label id="avOrdReabrirBox" style="display:none;margin-top:12px;font-size:12.5px;gap:8px;align-items:center">
+        <input type="checkbox" id="avOrdReabrir"> Reabrir para que el chofer vuelva a ordenar y confirmar</label>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+        <button class="alt" id="avOrdNo">Cancelar</button><button class="green" id="avOrdOk">Guardar orden</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="avModal">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-h"><h2 id="avModalTit">Cambiar estado</h2><span class="x" id="avModalX">×</span></div>
+    <div class="modal-b">
+      <div id="avModalSub" style="font-size:12.5px;color:#5a6b7a;margin-bottom:10px"></div>
+      <div class="opts" id="avModalOpts"></div>
+      <div id="avModalMot" style="display:none;margin-top:10px"><b style="font-size:12.5px" id="avModalMotLbl"></b><textarea id="avModalTxt" maxlength="500"></textarea></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+        <button class="alt" id="avModalNo">Cancelar</button><button class="green" id="avModalOk">Guardar estado</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   AVANCE DE RUTA
+   Muestra, para la programación cargada en pantalla, el estado que cada
+   conductor va marcando desde su celular (app Mi Ruta / ruta.html).
+   Los estados viven en la hoja "Estados" del mismo Google Sheets; aquí
+   solo se leen (y el admin/editor puede corregir uno si hace falta).
+   No toca pedidos, unidades ni la programación guardada.
+   ===================================================================== */
+(function(){
+  const AV_EST={
+    'EN RUTA':{cls:'EN_RUTA',c:'#9aa3ad'},'EN PROCESO':{cls:'EN_PROCESO',c:'#f59e0b'},
+    'TERMINADO':{cls:'TERMINADO',c:'#16a34a'},'ENTREGA PARCIAL':{cls:'ENTREGA_PARCIAL',c:'#8b5cf6'},
+    'ANULADO':{cls:'ANULADO',c:'#dc2626'}};
+  const AV_ORDEN=['TERMINADO','ENTREGA PARCIAL','ANULADO','EN PROCESO','EN RUTA'];
+  const AV_FINAL={'TERMINADO':1,'ENTREGA PARCIAL':1,'ANULADO':1};
+  const AV_ESPERA=15;   // tolerancia de espera en el cliente (min)
+  let avEstados={}, avProg='', avUlt=0, avErr='', avCargando=false, avAbiertas=new Set(), avEdit=null;
+
+  function vistaActiva(){const v=document.getElementById('view-avance');return v&&v.classList.contains('active');}
+  function facKey(p){return String(p.FACTURA||'').trim().toUpperCase()||('ID'+p.id);}
+  function progClave(){const d=progFechaActual();return d?claveProg(fechaISO(d),turnoActual):'';}
+  function hm(t){return t?String(t).slice(11,16):'';}
+  function minEntre(a,b){const x=Date.parse(String(a).replace(' ','T')+'-05:00'),y=b?Date.parse(String(b).replace(' ','T')+'-05:00'):Date.now();return isNaN(x)||isNaN(y)?null:Math.round((y-x)/60000);}
+  function tit(s){return String(s||'').toLowerCase().replace(/(^|[\s\/.(-])([a-záéíóúñ])/g,(m,a,b)=>a+b.toUpperCase()).replace(/\b(Sac|Eirl|Srl|Sa|Saa)\b/g,m=>m.toUpperCase());}
+  function urlApp(){return location.protocol==='file:'?'ruta.html':location.origin+location.pathname.replace(/[^\/]*$/,'')+'ruta.html';}
+
+  async function pedirNube(cuerpo){
+    const res=await fetchNube(nubeUrl(),{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(Object.assign({usuario:sesion.usuario,clave:sesion.clave},cuerpo))},30000);
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    return res.json();
+  }
+
+  async function avCargar(silencioso){
+    const prog=progClave();
+    if(!prog||!pedidos.length){avPintar();return;}
+    if(avCargando||!sesion.usuario)return;
+    avCargando=true;
+    if(prog!==avProg){avEstados={};avProg=prog;avAbiertas.clear();}
+    if(!silencioso)avPintarTool('Consultando…');
+    try{
+      const r=await pedirNube({accion:'estadoListar',prog});
+      if(!r||!r.ok){
+        const e=(r&&r.error)||'respuesta inválida';
+        avErr=/desconocida/i.test(e)
+          ?'Tu Apps Script todavía no tiene el módulo de estados. Agrega el archivo Estados.gs, la línea en doPost y publica una nueva versión.'
+          :e;
+      }else{
+        const m={};(r.estados||[]).forEach(x=>{m[x.clave]=x;});
+        if(prog===avProg){avEstados=m;avErr='';avUlt=Date.now();}
+      }
+    }catch(e){avErr='No se pudo consultar: '+e.message;}
+    finally{avCargando=false;}
+    avPintar();
+  }
+
+  /* lo que los conductores tienen en el celular es la ÚLTIMA versión guardada;
+     si la pantalla tiene cambios sin guardar, lo que ven puede ser distinto */
+  function firma(lista){return (lista||[]).filter(p=>p.unitId&&!p.baja).map(p=>facKey(p)+':'+p.unitId+':'+p.seq).sort().join('|');}
+  function sinGuardar(prog){
+    let reg=null;try{reg=leerStore().find(r=>r.fecha===prog);}catch(e){}
+    if(!reg)return 'nunca';
+    return firma(reg.pedidos)!==firma(pedidos)?'cambios':'';
+  }
+
+  function avPintarTool(msgUpd){
+    const t=document.getElementById('avTool');if(!t)return;
+    const d=progFechaActual();
+    t.innerHTML=`<span class="av-prog">${d?esc(fechaPE(d))+' · '+esc(turnoLbl(turnoActual)):'Sin programación en pantalla'}<small>lo que marcan los conductores en Mi Ruta</small></span>
+      <span class="av-esp"></span>
+      <span class="av-upd">${esc(msgUpd||(avUlt?'Actualizado '+new Date(avUlt).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'}):''))}</span>
+      <label class="av-chk"><input type="checkbox" id="avAuto" ${avAuto?'checked':''}> Actualizar cada minuto</label>
+      <button class="alt" id="avRefrescar">⟳ Actualizar</button>
+      <button class="alt" id="avCopiar" title="Enlace de la app de los conductores, para mandarlo por WhatsApp">📱 Copiar enlace de Mi Ruta</button>`;
+    document.getElementById('avRefrescar').onclick=()=>avCargar(false);
+    document.getElementById('avAuto').onchange=e=>{avAuto=e.target.checked;try{localStorage.setItem('av_auto',avAuto?'1':'0');}catch(x){}};
+    document.getElementById('avCopiar').onclick=async()=>{
+      const u=urlApp();
+      try{await navigator.clipboard.writeText(u);alert('✓ Enlace copiado:\n'+u+'\n\nMándalo a cada conductor. En el celular: menú ⋮ de Chrome → "Agregar a pantalla principal" y queda como una app.');}
+      catch(e){prompt('Copia este enlace y envíalo a los conductores:',u);}
+    };
+  }
+  let avAuto=true;try{avAuto=localStorage.getItem('av_auto')!=='0';}catch(e){}
+
+  function estadoDe(prog,p){return avEstados[prog+'|'+facKey(p)]||null;}
+
+  function avPintar(){
+    actualizarConteo();
+    if(!vistaActiva())return;
+    avPintarTool();
+    const cont=document.getElementById('avCuerpo');
+    const prog=progClave();
+    if(!pedidos.length||!prog){
+      cont.innerHTML=`<div class="av-vacio"><b>Carga una programación</b>Abre la del día desde 🗂️ Historial (o sube el Excel, asigna y guarda). Aquí verás cómo avanza cada camión.</div>`;
+      document.getElementById('avStats').innerHTML='';document.getElementById('avAvisos').innerHTML='';
+      return;
+    }
+    const sg=sinGuardar(prog);
+    let avisos='';
+    if(avErr)avisos+=`<div class="av-aviso err">${esc(avErr)}</div>`;
+    if(sg==='nunca')avisos+=`<div class="av-aviso"><b>Esta programación no está guardada.</b> Los conductores solo ven lo que se guarda: presiona 💾 Guardar programación.</div>`;
+    else if(sg==='cambios')avisos+=`<div class="av-aviso"><b>Hay cambios sin guardar.</b> Los conductores siguen viendo la versión anterior hasta que presiones 💾 Guardar programación.</div>`;
+    document.getElementById('avAvisos').innerHTML=avisos;
+
+    const tot={}, filasInc=[];
+    let nTot=0;
+    const tarjetas=unidades.map(u=>{
+      const ps=pedidos.filter(p=>p.unitId===u.id&&!p.baja).sort((a,b)=>(a.seq||999)-(b.seq||999));
+      if(!ps.length)return '';
+      const filas=ps.map(p=>{const e=estadoDe(prog,p);return {p,e,est:(e&&e.estado)||'EN RUTA',ord:(e&&+e.ordenVisita)||0};});
+      /* orden de visita del chofer: ¿lo puso? ¿difiere de lo programado? */
+      const conOrd=filas.filter(f=>f.ord);
+      const distinto=conOrd.some((f,i)=>i&&f.ord<conOrd[i-1].ord);
+      /* la ruta se lee en el orden en que el chofer la va a visitar (lo no numerado, al final en el orden programado) */
+      filas.sort((a,b)=>(a.ord||1e6)-(b.ord||1e6)||(a.p.seq||999)-(b.p.seq||999));
+      const c={};filas.forEach(f=>{c[f.est]=(c[f.est]||0)+1;tot[f.est]=(tot[f.est]||0)+1;nTot++;});
+      const hechas=filas.filter(f=>AV_FINAL[f.est]).length;
+      const pct=Math.round(hechas/filas.length*100);
+      const ahora=filas.find(f=>f.est==='EN PROCESO');
+      const sig=filas.find(f=>f.est==='EN RUTA');
+      const ult=filas.map(f=>f.e&&f.e.actualizado).filter(Boolean).sort().slice(-1)[0];
+      filas.forEach(f=>{if(f.est==='ANULADO'||f.est==='ENTREGA PARCIAL')filasInc.push({u,f});});
+      let info='';
+      if(ahora){
+        const m=minEntre(ahora.e.horaLlegada);
+        info+=`<div class="ahora">⏱ En ${esc(tit(ahora.p.CLIENTES))} desde ${esc(hm(ahora.e.horaLlegada))}${m!=null?` · <span class="${m>AV_ESPERA?'lento':''}">${m} min</span>`:''}</div>`;
+      }
+      if(sig)info+=`<div>Siguiente: ${esc(tit(sig.p.CLIENTES))} · ${esc(tit(sig.p.DISTRITO))}</div>`;
+      else if(hechas===filas.length)info+=`<div style="color:#15803d;font-weight:600">✓ Ruta terminada${(()=>{const f=filas.map(x=>x.e&&x.e.horaFin).filter(Boolean).sort().slice(-1)[0];return f?' a las '+esc(hm(f)):''})()}</div>`;
+      const fConf=filas.find(f=>f.e&&f.e.ordenConfirmado);
+      const dif=distinto?' · <b style="color:#9a4a07">distinto al programado</b>':' · igual al programado';
+      info+=fConf
+        ?`<div class="av-lock">🔒 Orden confirmado${fConf.e.ordenConfirmadoPor?' por '+esc(fConf.e.ordenConfirmadoPor):''}${fConf.e.ordenConfirmadoEn?' a las '+esc(hm(fConf.e.ordenConfirmadoEn)):''}<span style="color:#3a4652">${dif}</span></div>`
+        :conOrd.length
+          ?`<div>🔢 Orden en armado por el chofer, aún sin confirmar${dif}</div>`
+          :`<div style="color:#8a96a3">🔢 El chofer aún no ordenó su ruta</div>`;
+      info+=`<div style="color:#8a96a3">${ult?'Último reporte '+esc(hm(ult))+(ult.slice(0,10)!==fechaISO(progFechaActual())?' del '+esc(ult.slice(8,10)+'/'+ult.slice(5,7)):''):'Aún sin reportes del conductor'}</div>`;
+      const abierta=avAbiertas.has(u.id);
+      const tabla=abierta?`<div class="av-scroll"><table class="av-tabla"><thead><tr><th title="Orden de visita que puso el chofer">Visita</th><th title="N° programado en el planificador">Prog.</th><th>Cliente / factura</th><th>Estado</th><th>Llegó</th><th>Fin</th><th>Min</th></tr></thead><tbody>${
+        filas.map(f=>{const e=f.e||{};const m=e.horaLlegada&&e.horaFin?minEntre(e.horaLlegada,e.horaFin):(f.est==='EN PROCESO'?minEntre(e.horaLlegada):null);
+          return `<tr><td class="n" style="color:var(--negro)">${f.ord||'—'}</td><td class="n">${f.p.seq||''}</td><td><div class="cli">${esc(tit(f.p.CLIENTES))}</div><div class="sub">${esc(f.p.FACTURA||'sin factura')} · ${esc(tit(f.p.DISTRITO))}</div>
+            ${f.est==='ANULADO'&&e.motivo?`<div class="mot">Motivo: ${esc(e.motivo)}</div>`:''}${f.est==='ENTREGA PARCIAL'&&e.detalle?`<div class="det">Rechazado: ${esc(e.detalle)}</div>`:''}</td>
+            <td>${puedeEditar()?`<button class="av-est ${AV_EST[f.est].cls}" data-aved="${escAttr(f.p.id)}" title="Corregir estado">${esc(f.est)}</button>`:`<span class="av-est ${AV_EST[f.est].cls}">${esc(f.est)}</span>`}</td>
+            <td>${esc(hm(e.horaLlegada))}</td><td>${esc(hm(e.horaFin))}</td><td>${m!=null&&m>=0?`<span class="${m>AV_ESPERA&&f.est==='EN PROCESO'?'lento':''}" style="${m>AV_ESPERA&&f.est==='EN PROCESO'?'color:#b91c1c;font-weight:700':''}">${m}</span>`:''}</td></tr>`;}).join('')
+      }</tbody></table></div>`:'';
+      return `<div class="av-card${ahora?' vivo':''}">
+        <div class="av-ch"><div class="av-ruta">${esc(u.ruta||'·')}</div>
+          <div><div class="av-placa">${esc(u.placa||'Sin placa')}</div><div class="av-pers">${esc(tit(u.personal||''))}</div></div>
+          <div class="av-pct"><b>${pct}%</b><small>${hechas} de ${filas.length} facturas</small></div></div>
+        <div class="av-tramos">${filas.map(f=>`<span style="background:${AV_EST[f.est].c}" title="${escAttr((f.p.seq||'')+'. '+tit(f.p.CLIENTES)+' — '+f.est)}"></span>`).join('')}</div>
+        <div class="av-info">${info}</div>
+        <div class="av-cnt">${AV_ORDEN.filter(k=>c[k]).map(k=>`<span><i style="background:${AV_EST[k].c}"></i>${c[k]} ${esc(k.toLowerCase())}</span>`).join('')}</div>
+        <div class="av-pie"><button class="av-tg" data-avtg="${u.id}">${abierta?'▾ Ocultar facturas':'▸ Ver facturas ('+filas.length+')'}</button>
+          ${esAdmin()?`<button class="av-ord-btn" data-avord="${u.id}" title="Solo el supervisor (admin) puede cambiar el orden de visita">✏️ Editar orden</button>`:''}</div>${tabla}</div>`;
+    }).join('');
+
+    /* resumen general */
+    const hechasTot=(tot['TERMINADO']||0)+(tot['ENTREGA PARCIAL']||0)+(tot['ANULADO']||0);
+    const pctTot=nTot?Math.round(hechasTot/nTot*100):0;
+    document.getElementById('avStats').innerHTML=nTot?`
+      <div class="stat s-tot" style="flex:2;min-width:220px"><div class="v">${pctTot}% <span style="font-size:12px;font-weight:600;color:#5a6b7a">${hechasTot} de ${nTot} facturas atendidas</span></div>
+        <div class="av-barra-tot">${AV_ORDEN.filter(k=>tot[k]).map(k=>`<span style="width:${tot[k]/nTot*100}%;background:${AV_EST[k].c}" title="${tot[k]} ${k.toLowerCase()}"></span>`).join('')}</div></div>
+      <div class="stat s-term"><div class="v" style="color:#15803d">${tot['TERMINADO']||0}</div><div class="l">Terminado</div></div>
+      <div class="stat s-parc"><div class="v" style="color:#6d28d9">${tot['ENTREGA PARCIAL']||0}</div><div class="l">Entrega parcial</div></div>
+      <div class="stat s-anul"><div class="v" style="color:#b91c1c">${tot['ANULADO']||0}</div><div class="l">Anulado</div></div>
+      <div class="stat s-proc"><div class="v" style="color:#b45309">${tot['EN PROCESO']||0}</div><div class="l">En proceso</div></div>
+      <div class="stat s-ruta"><div class="v" style="color:#5b6573">${tot['EN RUTA']||0}</div><div class="l">En ruta</div></div>`:'';
+
+    const inc=filasInc.length?`<div class="panel av-inc"><div class="panel-h"><span>⚠️ Anulados y entregas parciales</span><span>${filasInc.length}</span></div>
+      <div class="av-scroll"><table class="av-tabla"><thead><tr><th>Camión</th><th>Cliente / factura</th><th>Estado</th><th>Hora</th><th>Motivo / qué se rechazó</th></tr></thead><tbody>${
+      filasInc.map(({u,f})=>`<tr><td><b>${esc(u.placa||'')}</b><div class="sub">Ruta ${esc(u.ruta||'')}</div></td>
+        <td><div class="cli">${esc(tit(f.p.CLIENTES))}</div><div class="sub">${esc(f.p.FACTURA||'sin factura')}</div></td>
+        <td><span class="av-est ${AV_EST[f.est].cls}">${esc(f.est)}</span></td><td>${esc(hm(f.e&&f.e.horaFin))}</td>
+        <td>${esc((f.e&&(f.est==='ANULADO'?f.e.motivo:f.e.detalle))||'—')}</td></tr>`).join('')}</tbody></table></div></div>`:'';
+
+    cont.innerHTML=tarjetas.trim()
+      ?inc+`<div class="av-grid">${tarjetas}</div>`
+      :`<div class="av-vacio"><b>Ningún camión tiene facturas asignadas</b>Asigna los pedidos en "1 · Armar Ruta" y guarda la programación.</div>`;
+    cont.querySelectorAll('[data-avtg]').forEach(b=>b.onclick=()=>{const id=+b.dataset.avtg;avAbiertas.has(id)?avAbiertas.delete(id):avAbiertas.add(id);avPintar();});
+    cont.querySelectorAll('[data-aved]').forEach(b=>b.onclick=()=>abrirEdicion(+b.dataset.aved));
+    cont.querySelectorAll('[data-avord]').forEach(b=>b.onclick=()=>abrirOrden(+b.dataset.avord));
+  }
+
+  function actualizarConteo(){
+    const el=document.getElementById('cntAvance');if(!el)return;
+    const prog=progClave();
+    const ps=pedidos.filter(p=>p.unitId&&!p.baja);
+    if(!prog||!ps.length||prog!==avProg){el.textContent='—';return;}
+    const h=ps.filter(p=>{const e=estadoDe(prog,p);return e&&AV_FINAL[e.estado];}).length;
+    el.textContent=h+'/'+ps.length;
+  }
+
+  /* ---------- corrección manual (admin / editor) ---------- */
+  function puedeEditar(){return sesion.rol==='admin'||sesion.rol==='editor';}
+  function esAdmin(){return sesion.rol==='admin';}
+
+  /* ---------- orden de visita: solo el supervisor (admin) lo cambia ----------
+     Mismas paradas que ve el chofer: facturas seguidas del mismo cliente forman
+     una parada y comparten número. */
+  let avOrd=null;
+  function paradasUnidad(u,prog){
+    const ps=pedidos.filter(p=>p.unitId===u.id&&!p.baja).sort((a,b)=>(a.seq||999)-(b.seq||999)||a.id-b.id);
+    const out=[];
+    const normCli=x=>String(x||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]/g,'');   // igual que en Mi Ruta
+    ps.forEach(p=>{const k=normCli(p.CLIENTES);const ult=out[out.length-1];
+      if(ult&&ult.k===k)ult.peds.push(p);else out.push({k,peds:[p]});});
+    out.forEach((s,i)=>{s.n=i+1;
+      const ords=s.peds.map(p=>{const e=estadoDe(prog,p);return e?+e.ordenVisita||0:0;}).filter(Boolean);
+      s.ord=ords.length?Math.min(...ords):0;
+      s.conf=s.peds.some(p=>{const e=estadoDe(prog,p);return e&&e.ordenConfirmado;});
+      const est=s.peds.map(p=>{const e=estadoDe(prog,p);return (e&&e.estado)||'EN RUTA';});
+      s.est=est.every(x=>x==='TERMINADO')?'TERMINADO':est.some(x=>x!=='EN RUTA')?est.find(x=>x!=='EN RUTA'):'EN RUTA';});
+    return out.sort((a,b)=>(a.ord||1e6)-(b.ord||1e6)||a.n-b.n);
+  }
+  function abrirOrden(uid){
+    if(!esAdmin())return;
+    const u=unidades.find(x=>x.id===uid);if(!u)return;
+    const prog=progClave();
+    const lista=paradasUnidad(u,prog);
+    avOrd={u,prog,lista,inicial:lista.map(s=>s.ord)};
+    const conf=lista.some(s=>s.conf);
+    document.getElementById('avOrdTit').textContent='Orden de visita · '+(u.placa||'')+' (Ruta '+(u.ruta||'')+')';
+    document.getElementById('avOrdSub').innerHTML=conf
+      ?'🔒 El chofer ya confirmó este orden. Los cambios que hagas aquí son los únicos permitidos y se verán en su celular.'
+      :'El chofer todavía no confirmó su orden. Si lo guardas aquí, él podrá seguir ajustándolo hasta confirmarlo.';
+    document.getElementById('avOrdReabrirBox').style.display=conf?'flex':'none';
+    document.getElementById('avOrdReabrir').checked=false;
+    pintarOrden();
+    document.getElementById('avOrdModal').classList.add('show');
+  }
+  function pintarOrden(){
+    const L=avOrd.lista;
+    document.getElementById('avOrdLista').innerHTML=L.map((s,i)=>{const p0=s.peds[0];
+      return `<div class="ord-r${s.ord&&s.ord!==i+1||!s.ord?' movido':''}"><span class="ord-n">${i+1}</span>
+        <div class="ord-t"><b>${esc(tit(p0.CLIENTES))}</b><span>${esc(tit(p0.DISTRITO))} · prog. ${s.n} · ${s.peds.length} factura${s.peds.length>1?'s':''}${s.ord&&s.ord!==i+1?' · antes '+s.ord:''}</span></div>
+        <span class="av-est ${AV_EST[s.est].cls} ord-est">${esc(s.est)}</span>
+        <span class="ord-f"><button data-up="${i}" ${i?'':'disabled'} aria-label="Subir">▲</button> <button data-dn="${i}" ${i<L.length-1?'':'disabled'} aria-label="Bajar">▼</button></span></div>`;}).join('');
+    document.querySelectorAll('#avOrdLista [data-up]').forEach(b=>b.onclick=()=>{const i=+b.dataset.up;[L[i-1],L[i]]=[L[i],L[i-1]];pintarOrden();});
+    document.querySelectorAll('#avOrdLista [data-dn]').forEach(b=>b.onclick=()=>{const i=+b.dataset.dn;[L[i+1],L[i]]=[L[i],L[i+1]];pintarOrden();});
+  }
+  function cerrarOrden(){document.getElementById('avOrdModal').classList.remove('show');avOrd=null;}
+  document.getElementById('avOrdX').onclick=cerrarOrden;
+  document.getElementById('avOrdNo').onclick=cerrarOrden;
+  document.getElementById('avOrdOk').onclick=async()=>{
+    if(!avOrd)return;
+    const {u,prog,lista}=avOrd;
+    const reabrir=document.getElementById('avOrdReabrir').checked;
+    const ts=Date.now(),cambios=[];
+    const base=p=>({cid:'ord'+ts+'-'+p.id,prog,fechaDia:prog.split('#')[0],turno:turnoActual,placa:u.placa||'',ruta:u.ruta||'',
+      personal:u.personal||'',seq:p.seq,factura:p.FACTURA||'',pedidoId:p.id,cliente:p.CLIENTES,distrito:p.DISTRITO,soloOrden:true});
+    lista.forEach((s,i)=>s.peds.forEach(p=>{
+      const e=estadoDe(prog,p);if(e&&+e.ordenVisita===i+1)return;
+      cambios.push(Object.assign(base(p),{orden:i+1,ts}));
+    }));
+    if(reabrir)lista.forEach(s=>s.peds.forEach(p=>cambios.push(Object.assign(base(p),{cid:'rea'+ts+'-'+p.id,reabrir:true,ts:ts+1}))));
+    if(!cambios.length){cerrarOrden();return;}
+    const b=document.getElementById('avOrdOk');b.disabled=true;b.textContent='Guardando…';
+    try{
+      const r=await pedirNube({accion:'estadoGuardar',cambios});
+      if(!r||!r.ok)throw new Error((r&&r.error)||'respuesta inválida');
+      if(r.rechazados&&r.rechazados.length)throw new Error(r.rechazados[0].error);
+      (r.estados||[]).forEach(x=>{avEstados[x.clave]=x;});
+      cerrarOrden();avPintar();
+    }catch(e){alert('No se pudo guardar el orden: '+e.message);}
+    finally{b.disabled=false;b.textContent='Guardar orden';}
+  };
+  function abrirEdicion(pid){
+    const p=pedidos.find(x=>x.id===pid);if(!p)return;
+    const u=unidades.find(x=>x.id===p.unitId)||{};
+    const prog=progClave();const e=estadoDe(prog,p);const act=(e&&e.estado)||'EN RUTA';
+    avEdit={p,u,prog};
+    document.getElementById('avModalTit').textContent='Factura '+(p.FACTURA||'sin número');
+    document.getElementById('avModalSub').textContent=tit(p.CLIENTES)+' · '+(u.placa||'')+' · ahora: '+act;
+    document.getElementById('avModalOpts').innerHTML=Object.keys(AV_EST).map(k=>
+      `<label><input type="radio" name="avEst" value="${escAttr(k)}" ${k===act?'checked':''}><span class="av-est ${AV_EST[k].cls}">${esc(k)}</span></label>`).join('');
+    const txt=document.getElementById('avModalTxt');
+    txt.value=act==='ANULADO'?(e.motivo||''):act==='ENTREGA PARCIAL'?(e.detalle||''):'';
+    const sync=()=>{const v=(document.querySelector('input[name=avEst]:checked')||{}).value;
+      const box=document.getElementById('avModalMot');
+      box.style.display=(v==='ANULADO'||v==='ENTREGA PARCIAL')?'block':'none';
+      document.getElementById('avModalMotLbl').textContent=v==='ANULADO'?'Motivo de la anulación (obligatorio)':'¿Qué se rechazó? (opcional)';};
+    document.querySelectorAll('input[name=avEst]').forEach(r=>r.onchange=sync);sync();
+    document.getElementById('avModal').classList.add('show');
+  }
+  function cerrarEdicion(){document.getElementById('avModal').classList.remove('show');avEdit=null;}
+  document.getElementById('avModalX').onclick=cerrarEdicion;
+  document.getElementById('avModalNo').onclick=cerrarEdicion;
+  document.getElementById('avModalOk').onclick=async()=>{
+    if(!avEdit)return;
+    const v=(document.querySelector('input[name=avEst]:checked')||{}).value;
+    const t=document.getElementById('avModalTxt').value.trim();
+    if(v==='ANULADO'&&!t){alert('Escribe el motivo de la anulación.');return;}
+    const {p,u,prog}=avEdit;
+    const b=document.getElementById('avModalOk');b.disabled=true;b.textContent='Guardando…';
+    try{
+      const r=await pedirNube({accion:'estadoGuardar',cambios:[{cid:'sup'+Date.now(),prog,fechaDia:prog.split('#')[0],turno:turnoActual,
+        placa:u.placa||'',ruta:u.ruta||'',personal:u.personal||'',seq:p.seq,factura:p.FACTURA||'',pedidoId:p.id,cliente:p.CLIENTES,distrito:p.DISTRITO,
+        estado:v,motivo:v==='ANULADO'?t:'',detalle:v==='ENTREGA PARCIAL'?t:'',ts:Date.now()}]});
+      if(!r||!r.ok)throw new Error((r&&r.error)||'respuesta inválida');
+      if(r.rechazados&&r.rechazados.length)throw new Error(r.rechazados[0].error);
+      (r.estados||[]).forEach(x=>{avEstados[x.clave]=x;});
+      cerrarEdicion();avPintar();
+    }catch(e){alert('No se pudo guardar el estado: '+e.message);}
+    finally{b.disabled=false;b.textContent='Guardar estado';}
+  };
+
+  /* ---------- enganche con el planificador ---------- */
+  document.querySelector('.tab[data-view="avance"]').addEventListener('click',()=>{avPintar();avCargar(false);});
+  setInterval(()=>{
+    if(avAuto&&vistaActiva()&&!document.hidden&&!document.querySelector('#avModal.show,#avOrdModal.show'))avCargar(true);
+  },60000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&vistaActiva()&&Date.now()-avUlt>30000)avCargar(true);});
+  /* si cambia la programación en pantalla (otro día/turno), el conteo de la pestaña se limpia */
+  const _renderAll=window.renderAll;
+  if(typeof _renderAll==='function'){
+    window.renderAll=function(){const r=_renderAll.apply(this,arguments);try{if(progClave()!==avProg)actualizarConteo();if(vistaActiva())avPintar();}catch(e){}return r;};
+  }
+})();
+</script>
+
 </body>
 </html>
