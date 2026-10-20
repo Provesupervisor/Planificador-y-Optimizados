@@ -2017,7 +2017,7 @@ const NUBE_URL_KEY='prove_nube_url';
    "Configurar servidor" y ese valor manda sobre este. */
 /* Sello de version: sirve para saber, sin adivinar, que archivo esta corriendo
    realmente el navegador (GitHub Pages y el cache del movil suelen servir uno viejo). */
-const APP_VERSION='2026-10-20 · planificador-7';
+const APP_VERSION='2026-10-20 · planificador-8';
 const NUBE_URL_DEFECTO='https://script.google.com/macros/s/AKfycbzPfXZFs9GVEfBfDERzGGzxO8OgoRaMOHIg_QO9jOpMP31BkvENFenAP9rubgh_GPcW4Q/exec';
 const SESION_KEY='prove_sesion';
 let sesion={usuario:'',clave:'',rol:'',nombre:''};
@@ -4609,7 +4609,7 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
 .tb-vista button.on{background:#fff;color:var(--negro);box-shadow:0 1px 2px rgba(0,0,0,.15);}
 .tb-excel{border:0;background:var(--verde);color:#fff;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
 .tb-board{--cab:244px;display:flex;flex-direction:column;gap:6px;min-height:0;}
-.tb-row{display:grid;grid-template-columns:var(--cab) repeat(var(--n),minmax(0,1fr));gap:6px;flex:1 1 0;min-height:0;position:relative;}
+.tb-row{display:grid;grid-template-columns:var(--cab) repeat(var(--n),minmax(0,190px));gap:6px;flex:1 1 0;min-height:0;position:relative;}
 .tb-row:not(.tb-head)::before{content:"";position:absolute;left:var(--cab);right:0;top:50%;height:4px;margin-top:-2px;background:repeating-linear-gradient(90deg,#cfd4da 0 10px,transparent 10px 18px);z-index:0;}
 .tb-head{flex:0 0 16px;}
 .tb-head .tb-cab{background:none;border:0;padding:0 4px;font-size:10.5px;color:#8a96a3;font-weight:700;}
@@ -5012,10 +5012,13 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
     if(window.innerWidth<=760){b.style.height='';b.dataset.densidad='amplia';return;}
     const top=b.getBoundingClientRect().top+window.scrollY;
     const pie=26;
-    const h=Math.max(360,window.innerHeight-top-pie-14);
-    b.style.height=h+'px';
     const filas=b.querySelectorAll('.tb-row:not(.tb-head)').length||1;
-    const alto=(h-24)/filas;
+    /* llena la pantalla, pero con pocos camiones no estira las filas: máximo 132 px cada una */
+    const disponible=Math.max(filas*58+22,window.innerHeight-top-pie-14);
+    const ideal=22+filas*(132+6);
+    const h=Math.min(disponible,ideal);
+    b.style.height=h+'px';
+    const alto=(h-22)/filas;
     b.dataset.densidad=alto<62?'min':alto<90?'media':'amplia';
   }
   window.addEventListener('resize',()=>{if(vistaActiva()&&avVista==='tablero')ajustarAlto();});
