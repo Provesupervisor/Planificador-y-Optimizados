@@ -2017,7 +2017,7 @@ const NUBE_URL_KEY='prove_nube_url';
    "Configurar servidor" y ese valor manda sobre este. */
 /* Sello de version: sirve para saber, sin adivinar, que archivo esta corriendo
    realmente el navegador (GitHub Pages y el cache del movil suelen servir uno viejo). */
-const APP_VERSION='2026-10-20 · planificador-8';
+const APP_VERSION='2026-10-20 · planificador-9';
 const NUBE_URL_DEFECTO='https://script.google.com/macros/s/AKfycbzPfXZFs9GVEfBfDERzGGzxO8OgoRaMOHIg_QO9jOpMP31BkvENFenAP9rubgh_GPcW4Q/exec';
 const SESION_KEY='prove_sesion';
 let sesion={usuario:'',clave:'',rol:'',nombre:''};
@@ -4750,7 +4750,9 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
   function hm(t){return t?String(t).slice(11,16):'';}
   function minEntre(a,b){const x=Date.parse(String(a).replace(' ','T')+'-05:00'),y=b?Date.parse(String(b).replace(' ','T')+'-05:00'):Date.now();return isNaN(x)||isNaN(y)?null:Math.round((y-x)/60000);}
   function tit(s){return String(s||'').toLowerCase().replace(/(^|[\s\/.(-])([a-záéíóúñ])/g,(m,a,b)=>a+b.toUpperCase()).replace(/\b(Sac|Eirl|Srl|Sa|Saa)\b/g,m=>m.toUpperCase());}
-  function urlApp(){return location.protocol==='file:'?'ruta.html':location.origin+location.pathname.replace(/[^\/]*$/,'')+'ruta.html';}
+  /* Mi Ruta está publicada en su propio repositorio de GitHub Pages */
+  const URL_MI_RUTA='https://provesupervisor.github.io/MiRuta/';
+  function urlApp(){return URL_MI_RUTA;}
 
   async function pedirNube(cuerpo){
     const res=await fetchNube(nubeUrl(),{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
@@ -4809,7 +4811,7 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
     document.getElementById('avAuto').onchange=e=>{avAuto=e.target.checked;try{localStorage.setItem('av_auto',avAuto?'1':'0');}catch(x){}};
     document.getElementById('avCopiar').onclick=async()=>{
       const u=urlApp();
-      try{await navigator.clipboard.writeText(u);alert('✓ Enlace copiado:\n'+u+'\n\nMándalo a cada conductor. En el celular: menú ⋮ de Chrome → "Agregar a pantalla principal" y queda como una app.');}
+      try{await navigator.clipboard.writeText(u);alert('✓ Enlace copiado:\n'+u+'\n\nMándalo a cada conductor. Al abrirlo en Chrome aparece el botón «Instalar» y queda como una app en el celular.');}
       catch(e){prompt('Copia este enlace y envíalo a los conductores:',u);}
     };
   }
@@ -5265,6 +5267,5 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
   }
 })();
 </script>
-
 </body>
 </html>
