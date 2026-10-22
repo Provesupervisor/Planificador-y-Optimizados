@@ -83,6 +83,20 @@ button.lila{background:var(--lila);}button.lila:hover{background:#7c3aed;}
 .unit-top .pl{font-size:11px;opacity:.9;font-weight:500;}
 .unit-body{padding:9px 13px;background:var(--gris2);min-height:42px;}
 .unit-meta{display:flex;gap:14px;font-size:11px;color:#5a6b7a;padding:7px 13px;background:#fff;border-top:1px dashed var(--borde);flex-wrap:wrap;}
+/* equipo del camión (chofer y auxiliares) */
+.unit-eq{display:flex;flex-direction:column;gap:6px;padding:9px 13px;background:#fff;border-bottom:1px solid var(--borde);font-size:12px}
+.eq-fila{display:flex;flex-wrap:wrap;align-items:center;gap:5px 6px}
+.unit-eq .eq-lbl{font-size:10.5px;font-weight:700;color:#5a6b7a;text-transform:uppercase;letter-spacing:.3px;width:78px;flex:none}
+.unit-eq select{height:28px;border:1px solid var(--borde);border-radius:7px;padding:0 6px;font-size:12px;background:#fff;max-width:190px}
+.unit-eq select.vacio{border-color:#e0b000;background:#fffbea}
+.eq-ch{display:inline-flex;align-items:center;gap:5px;background:#eef2f6;border:1px solid #d7dee6;border-radius:99px;padding:2px 4px 2px 9px;font-weight:600}
+.eq-ch.ch{background:#1a1a1a;border-color:#1a1a1a;color:#fff}
+.eq-ch button{border:0;background:none;color:inherit;opacity:.65;cursor:pointer;font-size:13px;line-height:1;padding:0 3px}
+.eq-sug{border:1px dashed #1a1a1a;background:#fff;color:#1a1a1a;border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;text-align:left;line-height:1.35;height:auto;white-space:normal;width:100%}
+.eq-sug:hover{background:#f4f5f7}
+.eq-falta{font-size:11px;color:#9a6a00;background:#fff8e1;border-radius:6px;padding:2px 8px}
+.eq-ver{color:#334}
+#btnEqTodos{font-size:11px;font-weight:700;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.14);color:#fff;border-radius:7px;padding:3px 9px;cursor:pointer;margin-left:auto;margin-right:10px}
 .unit-meta b{color:var(--azul);}
 .cap-bar{height:6px;background:#e2e8f0;border-radius:4px;overflow:hidden;margin-top:5px;width:100%;}
 .cap-fill{height:100%;background:var(--verde);transition:.3s;}
@@ -787,7 +801,7 @@ button.ia:hover{background:linear-gradient(100deg,#2d2d2d 0%,#4c1d95 55%,#7c3aed
 
       <!-- unidades -->
       <div class="panel">
-        <div class="panel-h"><span>🚚 Unidades / Rutas</span><span id="unitCount">0</span></div>
+        <div class="panel-h"><span>🚚 Unidades / Rutas</span><button id="btnEqTodos" class="solo-editor" type="button" title="Pone en cada camión el equipo de su último despacho" style="display:none">↺ Repetir equipos</button><span id="unitCount">0</span></div>
         <div class="panel-b">
           <div class="unit-form solo-editor">
             <div class="fld" style="width:60px"><label>Ruta</label><input id="uRuta" placeholder="A" maxlength="6"></div>
@@ -1761,7 +1775,88 @@ function updateMassbar(view){
     unidades.map(u=>`<option value="${u.id}">${esc(unitLabel(u)||('Unidad '+u.id))}</option>`).join('');
 }
 
+/* ===== EQUIPO DE CADA CAMIÓN =====
+   Chofer y auxiliares salen de la hoja Usuarios (columna PUESTO). Se guardan
+   con la programación: así Mi Ruta sabe quién puede editar cada ruta. El texto
+   de PERSONAL se arma solo con sus nombres. */
+const PERSONAL_KEY='prove_personal_v1';
+let personalLista=(()=>{try{return JSON.parse(localStorage.getItem(PERSONAL_KEY)||'[]');}catch(e){return [];}})();
+let personalPidiendo=false,personalListo=false;
+async function cargarPersonal(){
+  if(personalPidiendo||personalListo||typeof sesion==='undefined'||!sesion||!sesion.usuario)return;
+  if(!(sesion.rol==='admin'||sesion.rol==='editor'))return;
+  personalPidiendo=true;
+  try{
+    const d=await nubeAccionUsuario({accion:'listarPersonal'});
+    personalLista=(d.personal||[]).slice().sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre)));
+    personalListo=true;
+    try{localStorage.setItem(PERSONAL_KEY,JSON.stringify(personalLista));}catch(e){}
+    renderUnits();
+  }catch(e){/* Apps Script anterior a la v11: se sigue usando solo el texto de PERSONAL */}
+  finally{personalPidiendo=false;}
+}
+function escA(v){return esc(v).replace(/"/g,'&quot;');}
+function tituloP(s){return String(s||'').toLowerCase().replace(/(^|[\s.-])([a-záéíóúñ])/g,(m,a,b)=>a+b.toUpperCase());}
+function nombreCorto(n){return tituloP(String(n||'').trim().split(/\s+/).slice(0,2).join(' '));}
+const esChoferP=p=>/CHOF|CONDUC/i.test(p&&p.puesto||'');
+function textoEquipo(eq){return (eq||[]).map(e=>nombreCorto(e.nombre||e.usuario)).join(' + ');}
+function normPl(s){return String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');}
+/* el equipo del último despacho guardado con esa placa */
+function equipoAnterior(u){
+  if(!u.placa)return null;
+  let actual='';try{const d=progFechaActual();if(d)actual=claveProg(fechaISO(d),turnoActual);}catch(e){}
+  const pl=normPl(u.placa),regs=leerStore().filter(r=>r.fecha!==actual).slice().sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+  /* quien ya está en otro camión de esta programación no se repite */
+  const ocupado=new Set();unidades.forEach(v=>{if(v!==u)(v.equipo||[]).forEach(e=>ocupado.add(e.usuario));});
+  for(const r of regs){const x=(r.unidades||[]).find(v=>normPl(v.placa)===pl&&v.equipo&&v.equipo.length);
+    if(x){const eq=x.equipo.filter(e=>!ocupado.has(e.usuario));
+      return eq.length?{eq:eq,fecha:(r.fechaTxt||regDia(r))+(turnoDeClave(r.fecha)==='2'?' (2do turno)':'')}:null;}}
+  return null;
+}
+function ponerEquipo(u,eq){
+  u.equipo=eq.filter(Boolean).map(e=>({usuario:e.usuario,nombre:e.nombre,puesto:e.puesto}));
+  if(u.equipo.length)u.personal=textoEquipo(u.equipo);
+}
+function franjaEquipo(u){
+  const eq=u.equipo||[];
+  const editor=sesion&&(sesion.rol==='admin'||sesion.rol==='editor');
+  if(!editor||!personalLista.length){
+    return eq.length?`<div class="unit-eq"><div class="eq-fila"><span class="eq-lbl">Equipo</span><span class="eq-ver">${esc(eq.map(e=>nombreCorto(e.nombre)+(esChoferP(e)?' (chofer)':'')).join(' · '))}</span></div></div>`:'';
+  }
+  const ch=eq[0]&&esChoferP(eq[0])?eq[0]:null, aux=eq.filter(e=>e!==ch);
+  const usados=new Set(eq.map(e=>e.usuario));
+  const enOtro=us=>{const x=unidades.find(v=>v!==u&&(v.equipo||[]).some(e=>e.usuario===us));return x?' · ya en '+(x.placa||x.ruta||'otro camión'):'';};
+  const opt=(p,sel)=>`<option value="${escA(p.usuario)}"${sel?' selected':''}>${esc(nombreCorto(p.nombre||p.usuario)+(sel?'':enOtro(p.usuario)))}</option>`;
+  const choferes=personalLista.filter(esChoferP),auxs=personalLista.filter(p=>!esChoferP(p));
+  const selCh=`<select data-eqch="${u.id}" class="${ch?'':'vacio'}"><option value="">— elegir chofer —</option><optgroup label="Choferes">${choferes.filter(p=>!usados.has(p.usuario)||(ch&&p.usuario===ch.usuario)).map(p=>opt(p,ch&&p.usuario===ch.usuario)).join('')}</optgroup></select>`;
+  const chips=aux.map(e=>`<span class="eq-ch">${esc(nombreCorto(e.nombre||e.usuario))}<button type="button" data-eqdel="${u.id}" data-us="${escA(e.usuario)}" title="Quitar">✕</button></span>`).join('');
+  const libres=[...auxs,...choferes].filter(p=>!usados.has(p.usuario));
+  const selAux=libres.length?`<select data-eqadd="${u.id}"><option value="">＋ auxiliar</option><optgroup label="Auxiliares">${auxs.filter(p=>!usados.has(p.usuario)).map(p=>opt(p)).join('')}</optgroup><optgroup label="Choferes">${choferes.filter(p=>!usados.has(p.usuario)).map(p=>opt(p)).join('')}</optgroup></select>`:'';
+  const ant=!eq.length?equipoAnterior(u):null;
+  return `<div class="unit-eq"><div class="eq-fila"><span class="eq-lbl">Chofer</span>${selCh}</div><div class="eq-fila"><span class="eq-lbl">Auxiliares</span>${chips}${selAux}</div>
+    ${ant?`<button type="button" class="eq-sug" data-eqsug="${u.id}">↺ Mismo equipo del ${esc(ant.fecha)}: ${esc(textoEquipo(ant.eq))}</button>`:''}
+    ${!eq.length?'<span class="eq-falta">Sin equipo: en Mi Ruta cualquier chofer o auxiliar podrá editar esta ruta</span>':''}</div>`;
+}
+function enlazarEquipo(list){
+  const uDe=id=>unidades.find(x=>x.id===+id);
+  const porUs=us=>personalLista.find(p=>p.usuario===us);
+  list.querySelectorAll('[data-eqch]').forEach(sl=>sl.addEventListener('change',()=>{
+    const u=uDe(sl.dataset.eqch);if(!u)return;const eq=(u.equipo||[]).filter(e=>!(esChoferP(e)&&(u.equipo||[]).indexOf(e)===0));
+    const p=porUs(sl.value);ponerEquipo(u,p?[p,...eq.filter(e=>e.usuario!==p.usuario)]:eq);renderAll();}));
+  list.querySelectorAll('[data-eqadd]').forEach(sl=>sl.addEventListener('change',()=>{
+    const u=uDe(sl.dataset.eqadd),p=porUs(sl.value);if(!u||!p)return;ponerEquipo(u,[...(u.equipo||[]),p]);renderAll();}));
+  list.querySelectorAll('[data-eqdel]').forEach(b=>b.addEventListener('click',()=>{
+    const u=uDe(b.dataset.eqdel);if(!u)return;ponerEquipo(u,(u.equipo||[]).filter(e=>e.usuario!==b.dataset.us));if(!u.equipo.length)u.personal='';renderAll();}));
+  list.querySelectorAll('[data-eqsug]').forEach(b=>b.addEventListener('click',()=>{
+    const u=uDe(b.dataset.eqsug),a=u&&equipoAnterior(u);if(!a)return;ponerEquipo(u,a.eq);renderAll();}));
+  const bt=document.getElementById('btnEqTodos');
+  if(bt){const hay=unidades.some(u=>!(u.equipo||[]).length&&equipoAnterior(u));bt.style.display=hay&&personalLista.length&&sesion&&sesion.rol!=='visualizador'?'':'none';
+    bt.onclick=()=>{let n=0;unidades.forEach(u=>{if(!(u.equipo||[]).length){const a=equipoAnterior(u);if(a){ponerEquipo(u,a.eq);n++;}}});renderAll();
+      if(n)alert('Se repitió el equipo del último despacho en '+n+' camión(es). Revisa y guarda la programación.');};}
+}
+
 function renderUnits(){
+  cargarPersonal();
   const list=document.getElementById('unitList');
   document.getElementById('unitEmpty').style.display=unidades.length?'none':'block';
   list.innerHTML=unidades.map(u=>{
@@ -1782,11 +1877,13 @@ function renderUnits(){
         <div><div class="nm">${esc(u.ruta?('Ruta '+u.ruta):'Unidad '+u.id)}</div><div class="pl">${esc(u.placa||'sin placa')}${u.personal?' · '+esc(u.personal):''}</div></div>
         <button class="unit-del" data-delunit="${u.id}">Eliminar</button>
       </div>
+      ${franjaEquipo(u)}
       <div class="unit-body">${chips||'<span style="color:#9aa7b3;font-size:11px">Sin pedidos asignados</span>'}</div>
       <div class="unit-meta"><span><b>${asg.length}</b> entregas</span><span style="color:var(--verde)">Completo: <b>${tc}</b></span><span style="color:var(--naranja)">Partes: <b>${tp}</b></span><span>S/ <b>${ts.toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2})}</b></span></div>
       ${u.cap?`<div style="padding:0 13px 10px">${capHtml}</div>`:''}
     </div>`;
   }).join('');
+  enlazarEquipo(list);
   list.querySelectorAll('[data-unassign]').forEach(b=>b.addEventListener('click',e=>{
     const p=pedidos.find(x=>x.id===+e.target.dataset.unassign);p.unitId=null;p.seq=0;renderAll();}));
   list.querySelectorAll('[data-delunit]').forEach(b=>b.addEventListener('click',e=>{
@@ -2017,7 +2114,7 @@ const NUBE_URL_KEY='prove_nube_url';
    "Configurar servidor" y ese valor manda sobre este. */
 /* Sello de version: sirve para saber, sin adivinar, que archivo esta corriendo
    realmente el navegador (GitHub Pages y el cache del movil suelen servir uno viejo). */
-const APP_VERSION='2026-10-20 · planificador-9';
+const APP_VERSION='2026-10-20 · planificador-11';
 const NUBE_URL_DEFECTO='https://script.google.com/macros/s/AKfycbzPfXZFs9GVEfBfDERzGGzxO8OgoRaMOHIg_QO9jOpMP31BkvENFenAP9rubgh_GPcW4Q/exec';
 const SESION_KEY='prove_sesion';
 let sesion={usuario:'',clave:'',rol:'',nombre:''};
@@ -2376,7 +2473,7 @@ async function guardarProgramacion(opt){
     guardadoEn:new Date().toISOString(),
     rutaFechaTxt:rutaFechaTxt,
     pedidos:pedidos,
-    unidades:unidades.map(u=>({id:u.id,ruta:u.ruta,placa:u.placa,personal:u.personal,cap:u.cap})),
+    unidades:unidades.map(u=>({id:u.id,ruta:u.ruta,placa:u.placa,personal:u.personal,cap:u.cap,equipo:(u.equipo||[]).map(e=>({usuario:e.usuario,nombre:e.nombre,puesto:e.puesto}))})),
     uid:uid, unidId:unidId, tiempoActual:tiempoActual, gpsCoords:gpsCoords
   };
   quitarTumba(clave);   // si esa fecha+turno estaba borrada, guardar la revive a propósito
@@ -4802,7 +4899,7 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
       ${hay?`<div class="tb-vista" role="tablist"><button role="tab" aria-selected="${avVista==='tablero'}" class="${avVista==='tablero'?'on':''}" data-tbvista="tablero" title="Todo el día en una pantalla">▦ Tablero</button><button role="tab" aria-selected="${avVista==='tabla'}" class="${avVista==='tabla'?'on':''}" data-tbvista="tabla" title="Una fila por factura">☰ Tabla</button></div>
       <button class="tb-excel" id="tbExcel" title="Descarga lo filtrado: cada fila con su placa y orden">⬇ Excel</button>`:''}
       <span class="av-upd">${esc(msgUpd||(avUlt?'Actualizado '+new Date(avUlt).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'}):''))}</span>
-      <label class="av-chk" title="Vuelve a consultar sola cada minuto"><input type="checkbox" id="avAuto" ${avAuto?'checked':''}> Auto</label>
+      <label class="av-chk" title="Vuelve a consultar sola cada 30 segundos"><input type="checkbox" id="avAuto" ${avAuto?'checked':''}> Auto</label>
       <button class="alt" id="avRefrescar">⟳ Actualizar</button>
       <button class="alt" id="avCopiar" title="Copia el enlace de la app de los choferes, para mandarlo por WhatsApp">📱 Enlace Mi Ruta</button>`;
     t.querySelectorAll('[data-tbvista]').forEach(b=>b.onclick=()=>{avVista=b.dataset.tbvista;try{localStorage.setItem('av_vista',avVista);}catch(e){}avPintar();});
@@ -5256,10 +5353,11 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
   /* ---------- enganche con el planificador ---------- */
   document.querySelector('.tab[data-view="avance"]').addEventListener('click',()=>{avPintar();avCargar(false);});
   document.querySelectorAll('.tab').forEach(t=>{if(t.dataset.view!=='avance')t.addEventListener('click',cerrarPanel);});
+  /* con la pestaña abierta, se vuelve a consultar cada 30 segundos (antes 60) */
   setInterval(()=>{
-    if(avAuto&&vistaActiva()&&!document.hidden&&!document.querySelector('#avModal.show,#avOrdModal.show'))avCargar(true);
-  },60000);
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&vistaActiva()&&Date.now()-avUlt>30000)avCargar(true);});
+    if(avAuto&&vistaActiva()&&!document.hidden&&Date.now()-avUlt>28000&&!document.querySelector('#avModal.show,#avOrdModal.show'))avCargar(true);
+  },10000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&vistaActiva()&&Date.now()-avUlt>15000)avCargar(true);});
   /* si cambia la programación en pantalla (otro día/turno), el conteo de la pestaña se limpia */
   const _renderAll=window.renderAll;
   if(typeof _renderAll==='function'){
