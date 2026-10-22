@@ -1782,7 +1782,7 @@ function updateMassbar(view){
    de PERSONAL se arma solo con sus nombres. */
 const PERSONAL_KEY='prove_personal_v1';
 let personalLista=(()=>{try{return JSON.parse(localStorage.getItem(PERSONAL_KEY)||'[]');}catch(e){return [];}})();
-let personalPidiendo=false,personalListo=false,personalError='',personalUltimo=0;
+let personalPidiendo=false,personalListo=false,personalError='',personalUltimo=0,personalSinPuesto=false,personalDiag=null;
 async function cargarPersonal(forzar){
   if(personalPidiendo||(personalListo&&!forzar)||typeof sesion==='undefined'||!sesion||!sesion.usuario)return;
   if(!(sesion.rol==='admin'||sesion.rol==='editor'))return;
@@ -1790,11 +1790,25 @@ async function cargarPersonal(forzar){
   personalPidiendo=true;personalUltimo=Date.now();
   try{
     const d=await nubeAccionUsuario({accion:'listarPersonal'});
-    personalLista=(d.personal||[]).slice().sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre)));
+    let lista=d.personal||[];personalSinPuesto=!!d.sinPuesto;personalDiag=d.diag||null;
+    /* Apps Script v11 sin nadie con PUESTO: el admin igual ve a los usuarios activos */
+    if(!lista.length&&sesion.rol==='admin'){
+      try{const du=await nubeAccionUsuario({accion:'listarUsuarios'});
+        lista=(du.usuarios||[]).filter(x=>x.activo&&x.rol!=='admin'&&x.rol!=='editor').map(x=>({usuario:x.usuario,nombre:x.nombre,puesto:''}));
+        if(lista.length){personalSinPuesto=true;personalDiag=personalDiag||{viejo:true};}}catch(e){}
+    }
+    personalLista=lista.slice().sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre)));
     personalListo=true;personalError='';
     try{localStorage.setItem(PERSONAL_KEY,JSON.stringify(personalLista));}catch(e){}
   }catch(e){personalError=String(e&&e.message||e||'error');}
   finally{personalPidiendo=false;renderUnits();}
+}
+function avisoSinPuesto(){
+  const d=personalDiag||{};
+  const txt=d.viejo?'La hoja Usuarios no me dio el PUESTO de nadie, así que muestro a todos los usuarios activos. Publica el Apps Script v11.1 para que los choferes y auxiliares puedan editar su camión.'
+    :d.columnaPuesto?'La columna '+d.columnaPuesto+' de la hoja Usuarios está vacía en los usuarios activos, así que muestro a todos. Elige igual el equipo: con eso ya pueden editar su camión.'
+    :'No encontré la columna PUESTO en la hoja Usuarios, así que muestro a todos los usuarios activos. Elige igual el equipo: con eso ya pueden editar su camión.'+(d.encabezados&&d.encabezados.length?' Títulos que leí en la fila 1: '+d.encabezados.join(' · ')+'.':'');
+  return `<div class="eq-falta eq-diag">${esc(txt)}</div>`;
 }
 /* por qué no hay lista de choferes/auxiliares: se dice en la tarjeta, no en silencio */
 function avisoPersonal(){
@@ -1811,7 +1825,7 @@ function avisoPersonal(){
 function escA(v){return esc(v).replace(/"/g,'&quot;');}
 function tituloP(s){return String(s||'').toLowerCase().replace(/(^|[\s.-])([a-záéíóúñ])/g,(m,a,b)=>a+b.toUpperCase());}
 function nombreCorto(n){return tituloP(String(n||'').trim().split(/\s+/).slice(0,2).join(' '));}
-const esChoferP=p=>/CHOF|CONDUC/i.test(p&&p.puesto||'');
+const esChoferP=p=>/CHOF|CONDUC/i.test(p&&p.puesto||'')||!!(p&&p.chofer&&!p.puesto);
 function textoEquipo(eq){return (eq||[]).map(e=>nombreCorto(e.nombre||e.usuario)).join(' + ');}
 function normPl(s){return String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');}
 /* el equipo del último despacho guardado con esa placa */
@@ -1826,8 +1840,8 @@ function equipoAnterior(u){
       return eq.length?{eq:eq,fecha:(r.fechaTxt||regDia(r))+(turnoDeClave(r.fecha)==='2'?' (2do turno)':'')}:null;}}
   return null;
 }
-function ponerEquipo(u,eq){
-  u.equipo=eq.filter(Boolean).map(e=>({usuario:e.usuario,nombre:e.nombre,puesto:e.puesto}));
+function ponerEquipo(u,eq,conChofer){
+  u.equipo=eq.filter(Boolean).map((e,i)=>{const o={usuario:e.usuario,nombre:e.nombre,puesto:e.puesto};if(i===0&&(conChofer||e.chofer))o.chofer=true;return o;});
   if(u.equipo.length)u.personal=textoEquipo(u.equipo);
 }
 function franjaEquipo(u){
@@ -1839,26 +1853,29 @@ function franjaEquipo(u){
   if(!editor){
     return eq.length?`<div class="unit-eq"><div class="eq-fila"><span class="eq-lbl">Equipo</span><span class="eq-ver">${esc(eq.map(e=>nombreCorto(e.nombre)+(esChoferP(e)?' (chofer)':'')).join(' · '))}</span></div></div>`:'';
   }
-  const ch=eq[0]&&esChoferP(eq[0])?eq[0]:null, aux=eq.filter(e=>e!==ch);
+  const ch=eq[0]&&(esChoferP(eq[0])||(personalSinPuesto&&eq[0].chofer))?eq[0]:null, aux=eq.filter(e=>e!==ch);
   const usados=new Set(eq.map(e=>e.usuario));
   const enOtro=us=>{const x=unidades.find(v=>v!==u&&(v.equipo||[]).some(e=>e.usuario===us));return x?' · ya en '+(x.placa||x.ruta||'otro camión'):'';};
   const opt=(p,sel)=>`<option value="${escA(p.usuario)}"${sel?' selected':''}>${esc(nombreCorto(p.nombre||p.usuario)+(sel?'':enOtro(p.usuario)))}</option>`;
-  const choferes=personalLista.filter(esChoferP),auxs=personalLista.filter(p=>!esChoferP(p));
+  const choferes=personalSinPuesto?personalLista:personalLista.filter(esChoferP),auxs=personalSinPuesto?personalLista:personalLista.filter(p=>!esChoferP(p));
   const selCh=`<select data-eqch="${u.id}" class="${ch?'':'vacio'}"><option value="">— elegir chofer —</option><optgroup label="Choferes">${choferes.filter(p=>!usados.has(p.usuario)||(ch&&p.usuario===ch.usuario)).map(p=>opt(p,ch&&p.usuario===ch.usuario)).join('')}</optgroup></select>`;
   const chips=aux.map(e=>`<span class="eq-ch">${esc(nombreCorto(e.nombre||e.usuario))}<button type="button" data-eqdel="${u.id}" data-us="${escA(e.usuario)}" title="Quitar">✕</button></span>`).join('');
   const libres=[...auxs,...choferes].filter(p=>!usados.has(p.usuario));
-  const selAux=libres.length?`<select data-eqadd="${u.id}"><option value="">＋ auxiliar</option><optgroup label="Auxiliares">${auxs.filter(p=>!usados.has(p.usuario)).map(p=>opt(p)).join('')}</optgroup><optgroup label="Choferes">${choferes.filter(p=>!usados.has(p.usuario)).map(p=>opt(p)).join('')}</optgroup></select>`:'';
+  const selAux=!libres.length?'':personalSinPuesto
+    ?`<select data-eqadd="${u.id}"><option value="">＋ auxiliar</option>${personalLista.filter(p=>!usados.has(p.usuario)).map(p=>opt(p)).join('')}</select>`
+    :`<select data-eqadd="${u.id}"><option value="">＋ auxiliar</option><optgroup label="Auxiliares">${auxs.filter(p=>!usados.has(p.usuario)).map(p=>opt(p)).join('')}</optgroup><optgroup label="Choferes">${choferes.filter(p=>!usados.has(p.usuario)).map(p=>opt(p)).join('')}</optgroup></select>`;
   const ant=!eq.length?equipoAnterior(u):null;
   return `<div class="unit-eq"><div class="eq-fila"><span class="eq-lbl">Chofer</span>${selCh}</div><div class="eq-fila"><span class="eq-lbl">Auxiliares</span>${chips}${selAux}</div>
     ${ant?`<button type="button" class="eq-sug" data-eqsug="${u.id}">↺ Mismo equipo del ${esc(ant.fecha)}: ${esc(textoEquipo(ant.eq))}</button>`:''}
-    ${!eq.length?'<span class="eq-falta">Sin equipo: en Mi Ruta cualquier chofer o auxiliar podrá editar esta ruta</span>':''}</div>`;
+    ${!eq.length?`<span class="eq-falta">${personalSinPuesto?'Sin equipo: en Mi Ruta solo tú podrás editar esta ruta':'Sin equipo: en Mi Ruta cualquier chofer o auxiliar podrá editar esta ruta'}</span>`:''}${personalSinPuesto&&unidades[0]===u?avisoSinPuesto():''}</div>`;
 }
 function enlazarEquipo(list){
   const uDe=id=>unidades.find(x=>x.id===+id);
   const porUs=us=>personalLista.find(p=>p.usuario===us);
   list.querySelectorAll('[data-eqch]').forEach(sl=>sl.addEventListener('change',()=>{
-    const u=uDe(sl.dataset.eqch);if(!u)return;const eq=(u.equipo||[]).filter(e=>!(esChoferP(e)&&(u.equipo||[]).indexOf(e)===0));
-    const p=porUs(sl.value);ponerEquipo(u,p?[p,...eq.filter(e=>e.usuario!==p.usuario)]:eq);renderAll();}));
+    const u=uDe(sl.dataset.eqch);if(!u)return;const eq0=u.equipo||[];
+    const eq=eq0.filter((e,i)=>!(i===0&&(esChoferP(e)||e.chofer)));
+    const p=porUs(sl.value);ponerEquipo(u,p?[p,...eq.filter(e=>e.usuario!==p.usuario)]:eq.map(e=>Object.assign({},e,{chofer:false})),!!p);renderAll();}));
   list.querySelectorAll('[data-eqadd]').forEach(sl=>sl.addEventListener('change',()=>{
     const u=uDe(sl.dataset.eqadd),p=porUs(sl.value);if(!u||!p)return;ponerEquipo(u,[...(u.equipo||[]),p]);renderAll();}));
   list.querySelectorAll('[data-eqdel]').forEach(b=>b.addEventListener('click',()=>{
@@ -2131,7 +2148,7 @@ const NUBE_URL_KEY='prove_nube_url';
    "Configurar servidor" y ese valor manda sobre este. */
 /* Sello de version: sirve para saber, sin adivinar, que archivo esta corriendo
    realmente el navegador (GitHub Pages y el cache del movil suelen servir uno viejo). */
-const APP_VERSION='2026-10-20 · planificador-12';
+const APP_VERSION='2026-10-20 · planificador-13';
 const NUBE_URL_DEFECTO='https://script.google.com/macros/s/AKfycbzPfXZFs9GVEfBfDERzGGzxO8OgoRaMOHIg_QO9jOpMP31BkvENFenAP9rubgh_GPcW4Q/exec';
 const SESION_KEY='prove_sesion';
 let sesion={usuario:'',clave:'',rol:'',nombre:''};
@@ -2490,7 +2507,7 @@ async function guardarProgramacion(opt){
     guardadoEn:new Date().toISOString(),
     rutaFechaTxt:rutaFechaTxt,
     pedidos:pedidos,
-    unidades:unidades.map(u=>({id:u.id,ruta:u.ruta,placa:u.placa,personal:u.personal,cap:u.cap,equipo:(u.equipo||[]).map(e=>({usuario:e.usuario,nombre:e.nombre,puesto:e.puesto}))})),
+    unidades:unidades.map(u=>({id:u.id,ruta:u.ruta,placa:u.placa,personal:u.personal,cap:u.cap,equipo:(u.equipo||[]).map(e=>{const o={usuario:e.usuario,nombre:e.nombre,puesto:e.puesto};if(e.chofer)o.chofer=true;return o;})})),
     uid:uid, unidId:unidId, tiempoActual:tiempoActual, gpsCoords:gpsCoords
   };
   quitarTumba(clave);   // si esa fecha+turno estaba borrada, guardar la revive a propósito
