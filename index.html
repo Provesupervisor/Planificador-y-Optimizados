@@ -94,7 +94,8 @@ button.lila{background:var(--lila);}button.lila:hover{background:#7c3aed;}
 .eq-ch button{border:0;background:none;color:inherit;opacity:.65;cursor:pointer;font-size:13px;line-height:1;padding:0 3px}
 .eq-sug{border:1px dashed #1a1a1a;background:#fff;color:#1a1a1a;border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;text-align:left;line-height:1.35;height:auto;white-space:normal;width:100%}
 .eq-sug:hover{background:#f4f5f7}
-.eq-falta{font-size:11px;color:#9a6a00;background:#fff8e1;border-radius:6px;padding:2px 8px}
+.eq-falta{font-size:11px;color:#9a6a00;background:#fff8e1;border-radius:6px;padding:4px 8px;line-height:1.4}
+.eq-reint{background:#fff;color:#9a6a00;border:1px solid #e0b000;border-radius:6px;padding:1px 7px;font-size:11px;margin-left:4px}.eq-reint:hover{background:#fff3c4}
 .eq-ver{color:#334}
 #btnEqTodos{font-size:11px;font-weight:700;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.14);color:#fff;border-radius:7px;padding:3px 9px;cursor:pointer;margin-left:auto;margin-right:10px}
 .unit-meta b{color:var(--azul);}
@@ -1781,19 +1782,31 @@ function updateMassbar(view){
    de PERSONAL se arma solo con sus nombres. */
 const PERSONAL_KEY='prove_personal_v1';
 let personalLista=(()=>{try{return JSON.parse(localStorage.getItem(PERSONAL_KEY)||'[]');}catch(e){return [];}})();
-let personalPidiendo=false,personalListo=false;
-async function cargarPersonal(){
-  if(personalPidiendo||personalListo||typeof sesion==='undefined'||!sesion||!sesion.usuario)return;
+let personalPidiendo=false,personalListo=false,personalError='',personalUltimo=0;
+async function cargarPersonal(forzar){
+  if(personalPidiendo||(personalListo&&!forzar)||typeof sesion==='undefined'||!sesion||!sesion.usuario)return;
   if(!(sesion.rol==='admin'||sesion.rol==='editor'))return;
-  personalPidiendo=true;
+  if(!forzar&&personalError&&Date.now()-personalUltimo<20000)return;   // no insistir en cada repintado
+  personalPidiendo=true;personalUltimo=Date.now();
   try{
     const d=await nubeAccionUsuario({accion:'listarPersonal'});
     personalLista=(d.personal||[]).slice().sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre)));
-    personalListo=true;
+    personalListo=true;personalError='';
     try{localStorage.setItem(PERSONAL_KEY,JSON.stringify(personalLista));}catch(e){}
-    renderUnits();
-  }catch(e){/* Apps Script anterior a la v11: se sigue usando solo el texto de PERSONAL */}
-  finally{personalPidiendo=false;}
+  }catch(e){personalError=String(e&&e.message||e||'error');}
+  finally{personalPidiendo=false;renderUnits();}
+}
+/* por qué no hay lista de choferes/auxiliares: se dice en la tarjeta, no en silencio */
+function avisoPersonal(){
+  const err=personalError;
+  let txt;
+  if(personalPidiendo&&!err)txt='Cargando la lista de choferes y auxiliares…';
+  else if(/desconocida/i.test(err))txt='Para elegir chofer y auxiliares falta publicar el Apps Script v11 (Implementar → Gestionar implementaciones → lápiz → Nueva versión).';
+  else if(/servidor|URL/i.test(err))txt='Activa la nube en "Sincronización" para traer la lista de choferes y auxiliares.';
+  else if(err)txt='No se pudo traer la lista de choferes y auxiliares ('+err+').';
+  else if(personalListo)txt='La hoja Usuarios no tiene a nadie con PUESTO y activo = si.';
+  else txt='Cargando la lista de choferes y auxiliares…';
+  return `<div class="eq-falta">${esc(txt)} <button type="button" class="eq-reint" data-eqreint="1">Reintentar</button></div>`;
 }
 function escA(v){return esc(v).replace(/"/g,'&quot;');}
 function tituloP(s){return String(s||'').toLowerCase().replace(/(^|[\s.-])([a-záéíóúñ])/g,(m,a,b)=>a+b.toUpperCase());}
@@ -1820,7 +1833,10 @@ function ponerEquipo(u,eq){
 function franjaEquipo(u){
   const eq=u.equipo||[];
   const editor=sesion&&(sesion.rol==='admin'||sesion.rol==='editor');
-  if(!editor||!personalLista.length){
+  if(editor&&!personalLista.length){
+    return `<div class="unit-eq">${eq.length?`<div class="eq-fila"><span class="eq-lbl">Equipo</span><span class="eq-ver">${esc(textoEquipo(eq))}</span></div>`:''}${avisoPersonal()}</div>`;
+  }
+  if(!editor){
     return eq.length?`<div class="unit-eq"><div class="eq-fila"><span class="eq-lbl">Equipo</span><span class="eq-ver">${esc(eq.map(e=>nombreCorto(e.nombre)+(esChoferP(e)?' (chofer)':'')).join(' · '))}</span></div></div>`:'';
   }
   const ch=eq[0]&&esChoferP(eq[0])?eq[0]:null, aux=eq.filter(e=>e!==ch);
@@ -1849,6 +1865,7 @@ function enlazarEquipo(list){
     const u=uDe(b.dataset.eqdel);if(!u)return;ponerEquipo(u,(u.equipo||[]).filter(e=>e.usuario!==b.dataset.us));if(!u.equipo.length)u.personal='';renderAll();}));
   list.querySelectorAll('[data-eqsug]').forEach(b=>b.addEventListener('click',()=>{
     const u=uDe(b.dataset.eqsug),a=u&&equipoAnterior(u);if(!a)return;ponerEquipo(u,a.eq);renderAll();}));
+  list.querySelectorAll('[data-eqreint]').forEach(b=>b.addEventListener('click',()=>{personalError='';cargarPersonal(true);renderUnits();}));
   const bt=document.getElementById('btnEqTodos');
   if(bt){const hay=unidades.some(u=>!(u.equipo||[]).length&&equipoAnterior(u));bt.style.display=hay&&personalLista.length&&sesion&&sesion.rol!=='visualizador'?'':'none';
     bt.onclick=()=>{let n=0;unidades.forEach(u=>{if(!(u.equipo||[]).length){const a=equipoAnterior(u);if(a){ponerEquipo(u,a.eq);n++;}}});renderAll();
@@ -2114,7 +2131,7 @@ const NUBE_URL_KEY='prove_nube_url';
    "Configurar servidor" y ese valor manda sobre este. */
 /* Sello de version: sirve para saber, sin adivinar, que archivo esta corriendo
    realmente el navegador (GitHub Pages y el cache del movil suelen servir uno viejo). */
-const APP_VERSION='2026-10-20 · planificador-11';
+const APP_VERSION='2026-10-20 · planificador-12';
 const NUBE_URL_DEFECTO='https://script.google.com/macros/s/AKfycbzPfXZFs9GVEfBfDERzGGzxO8OgoRaMOHIg_QO9jOpMP31BkvENFenAP9rubgh_GPcW4Q/exec';
 const SESION_KEY='prove_sesion';
 let sesion={usuario:'',clave:'',rol:'',nombre:''};
