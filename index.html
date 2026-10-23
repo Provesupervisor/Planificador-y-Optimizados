@@ -82,6 +82,8 @@ button.lila{background:var(--lila);}button.lila:hover{background:#7c3aed;}
 .unit-top .nm{font-size:13.5px;}
 .unit-top .pl{font-size:11px;opacity:.9;font-weight:500;}
 .unit-body{padding:9px 13px;background:var(--gris2);min-height:42px;}
+.usr-debil{display:inline-block;font-size:11px;font-weight:700;color:#9a5b00;background:#fff4dc;border:1px solid #f0c66b;border-radius:99px;padding:2px 8px;white-space:nowrap}
+.usr-segura{font-size:11px;font-weight:600;color:#1f7a3d;white-space:nowrap}
 .unit-meta{display:flex;gap:14px;font-size:11px;color:#5a6b7a;padding:7px 13px;background:#fff;border-top:1px dashed var(--borde);flex-wrap:wrap;}
 /* equipo del camión (chofer y auxiliares) */
 .unit-eq{display:flex;flex-direction:column;gap:6px;padding:9px 13px;background:#fff;border-bottom:1px solid var(--borde);font-size:12px}
@@ -920,7 +922,7 @@ button.ia:hover{background:linear-gradient(100deg,#2d2d2d 0%,#4c1d95 55%,#7c3aed
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <div class="fld"><label style="font-size:10.5px;font-weight:600;color:var(--azul2)">Usuario</label><input type="text" id="usrNuevoUsuario" style="width:100%;padding:8px 10px;border:1px solid var(--borde);border-radius:7px;font-size:12.5px"></div>
           <div class="fld"><label style="font-size:10.5px;font-weight:600;color:var(--azul2)">Nombre</label><input type="text" id="usrNuevoNombre" style="width:100%;padding:8px 10px;border:1px solid var(--borde);border-radius:7px;font-size:12.5px"></div>
-          <div class="fld"><label style="font-size:10.5px;font-weight:600;color:var(--azul2)">Contraseña</label><input type="text" id="usrNuevaClave" placeholder="(dejar vacío = no cambiar)" style="width:100%;padding:8px 10px;border:1px solid var(--borde);border-radius:7px;font-size:12.5px"></div>
+          <div class="fld"><label style="font-size:10.5px;font-weight:600;color:var(--azul2)">Contraseña</label><div style="display:flex;gap:6px"><input type="text" id="usrNuevaClave" placeholder="(dejar vacío = no cambiar)" autocomplete="off" style="flex:1;min-width:0;padding:8px 10px;border:1px solid var(--borde);border-radius:7px;font-size:12.5px"><button type="button" id="usrGenClave" class="alt" style="padding:0 10px;border-radius:7px;font-size:12px;white-space:nowrap">🎲 Generar</button></div><small style="display:block;font-size:10.5px;color:#6b7a89;margin-top:3px">Mín. 8 caracteres (4 letras o más y números), sin el nombre de usuario. Se guarda cifrada: anótala antes de guardar.</small></div>
           <div class="fld"><label style="font-size:10.5px;font-weight:600;color:var(--azul2)">Rol</label><select id="usrNuevoRol" style="width:100%;padding:8px 10px;border:1px solid var(--borde);border-radius:7px;font-size:12.5px"><option value="editor">Editor (arma y guarda)</option><option value="visualizador">Visualizador (solo consulta · conductores)</option><option value="admin">Administrador (control total)</option></select></div>
         </div>
         <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
@@ -930,7 +932,7 @@ button.ia:hover{background:linear-gradient(100deg,#2d2d2d 0%,#4c1d95 55%,#7c3aed
         </div>
       </div>
       <div id="usrMsg" style="font-size:12px;padding:9px 12px;border-radius:8px;margin-bottom:12px;display:none"></div>
-      <table class="usr-table" id="usrTable"><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody id="usrBody"></tbody></table>
+      <table class="usr-table" id="usrTable"><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th>Contraseña</th><th></th></tr></thead><tbody id="usrBody"></tbody></table>
     </div>
   </div>
 </div>
@@ -2157,7 +2159,7 @@ const NUBE_URL_KEY='prove_nube_url';
    "Configurar servidor" y ese valor manda sobre este. */
 /* Sello de version: sirve para saber, sin adivinar, que archivo esta corriendo
    realmente el navegador (GitHub Pages y el cache del movil suelen servir uno viejo). */
-const APP_VERSION='2026-10-20 · planificador-14';
+const APP_VERSION='2026-10-20 · planificador-16';
 const NUBE_URL_DEFECTO='https://script.google.com/macros/s/AKfycbzPfXZFs9GVEfBfDERzGGzxO8OgoRaMOHIg_QO9jOpMP31BkvENFenAP9rubgh_GPcW4Q/exec';
 const SESION_KEY='prove_sesion';
 let sesion={usuario:'',clave:'',rol:'',nombre:''};
@@ -3588,9 +3590,11 @@ async function intentarLogin(){
   const btn=document.getElementById('loginBtn');btn.disabled=true;btn.textContent='Ingresando…';
   try{
     const r=await nubeLogin(usuario,clave);
-    sesion={usuario:r.usuario,clave:clave,rol:r.rol,nombre:r.nombre};
+    /* v12: el servidor entrega un pase de sesión; se guarda el pase, nunca la contraseña */
+    sesion={usuario:r.usuario,clave:r.token||clave,rol:r.rol,nombre:r.nombre};
     guardarSesionLocal();
     aplicarSesion();
+    if(r.claveDebil)setTimeout(()=>alert('🔒 Tu contraseña es insegura.\n\nCámbiala ahora en "Usuarios" (botón Editar en tu fila): mínimo 8 caracteres, con letras y números.'+(sesion.rol==='admin'?'\n\nEn esa misma ventana verás marcados a los demás usuarios con contraseña débil.':'')),400);
     // sincronizar al entrar: sube lo pendiente y deja el equipo igual a la nube
     await sincronizar();
     renderAll();
@@ -3631,9 +3635,28 @@ async function nubeAccionUsuario(payload){
   if(!data||!data.ok)throw new Error((data&&data.error)||'error');
   return data;
 }
+/* mismas reglas que el Apps Script v12 */
+function motivoClaveDebil(usuario,clave){
+  const c=String(clave||''),cl=c.toLowerCase(),us=String(usuario||'').toLowerCase();
+  if(c.length<8)return 'debe tener al menos 8 caracteres';
+  if(!/[a-zA-ZñÑ]/.test(c)||!/[0-9]/.test(c))return 'debe combinar letras y números';
+  if((c.match(/[a-zA-ZñÑáéíóúÁÉÍÓÚ]/g)||[]).length<4)return 'debe tener al menos 4 letras';
+  if(us&&cl.includes(us))return 'no debe contener el nombre de usuario';
+  for(let i=0;us.length>=4&&i+4<=us.length;i++)if(cl.includes(us.substr(i,4)))return 'no debe contener parte del nombre de usuario';
+  if(['12345678','123456789','password','contraseña','admin123','provefabrica1','clave123'].includes(cl))return 'es demasiado común';
+  if(/^t1\./i.test(c))return 'no puede empezar con "t1."';
+  return '';
+}
+/* contraseña segura y fácil de dictar: Palabra-0000-Palabra */
+function generarClave(){
+  const P=['Ruta','Patio','Carga','Camion','Pedido','Norte','Sur','Este','Oeste','Envio','Bulto','Almacen','Reparto','Placa','Volante','Rampa','Pallet','Destino','Llanta','Faro'];
+  const n=new Uint32Array(3);crypto.getRandomValues(n);
+  const a=P[n[0]%P.length];let b=P[n[1]%P.length];if(b===a)b=P[(n[1]+1)%P.length];
+  return a+'-'+String(1000+n[2]%9000)+'-'+b;
+}
 async function cargarUsuarios(){
   const body=document.getElementById('usrBody');
-  body.innerHTML='<tr><td colspan="5" style="text-align:center;color:#7a8a99">Cargando…</td></tr>';
+  body.innerHTML='<tr><td colspan="6" style="text-align:center;color:#7a8a99">Cargando…</td></tr>';
   try{
     const data=await nubeAccionUsuario({accion:'listarUsuarios'});
     const us=data.usuarios||[];
@@ -3642,10 +3665,11 @@ async function cargarUsuarios(){
       <td>${esc(u.nombre||'')}</td>
       <td><span class="usr-rol ${esc(u.rol)}">${u.rol==='admin'?'Admin':u.rol==='editor'?'Editor':'Visualizador'}</span></td>
       <td>${u.activo?'<span style="color:var(--verde)">Activo</span>':'<span style="color:var(--rojo)">Inactivo</span>'}</td>
+      <td>${u.debil===true?'<span class="usr-debil" title="Contraseña corta, sin números o fácil de adivinar">⚠ Débil: cámbiala</span>':u.debil===false?'<span class="usr-segura">🔒 Segura</span>':'<span style="color:#9aa">—</span>'}</td>
       <td style="text-align:right">
         <button class="mini" style="background:var(--azul2);color:#fff;border:none;border-radius:5px;padding:4px 9px;cursor:pointer" data-edit="${esc(u.usuario)}" data-nombre="${esc(u.nombre||'')}" data-rol="${esc(u.rol)}" data-activo="${u.activo}">Editar</button>
         ${u.usuario.toLowerCase()!==sesion.usuario.toLowerCase()?`<button class="mini" style="background:#fff;color:var(--rojo);border:1px solid var(--rojo);border-radius:5px;padding:4px 9px;cursor:pointer" data-del="${esc(u.usuario)}">✕</button>`:''}
-      </td></tr>`).join('')||'<tr><td colspan="5" style="text-align:center;color:#7a8a99">Sin usuarios</td></tr>';
+      </td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:#7a8a99">Sin usuarios</td></tr>';
     body.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>{
       document.getElementById('usrNuevoUsuario').value=b.dataset.edit;
       document.getElementById('usrNuevoNombre').value=b.dataset.nombre;
@@ -3660,7 +3684,7 @@ async function cargarUsuarios(){
       catch(e){usrMsg('Error: '+e.message,'err');}
     }));
   }catch(e){
-    body.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--rojo)">'+esc(e.message)+'</td></tr>';
+    body.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--rojo)">'+esc(e.message)+'</td></tr>';
   }
 }
 document.getElementById('btnUsuarios').addEventListener('click',()=>{
@@ -3669,6 +3693,8 @@ document.getElementById('btnUsuarios').addEventListener('click',()=>{
   usrModal.classList.add('show');cargarUsuarios();
 });
 document.getElementById('usrClose').addEventListener('click',()=>usrModal.classList.remove('show'));
+document.getElementById('usrGenClave').addEventListener('click',()=>{const i=document.getElementById('usrNuevaClave'),us=document.getElementById('usrNuevoUsuario').value.trim();
+  let g=generarClave();for(let k=0;k<20&&motivoClaveDebil(us,g);k++)g=generarClave();i.value=g;i.select();});
 usrModal.addEventListener('click',e=>{if(e.target===usrModal)usrModal.classList.remove('show');});
 document.getElementById('usrGuardar').addEventListener('click',async()=>{
   const nuevo={
@@ -3679,15 +3705,16 @@ document.getElementById('usrGuardar').addEventListener('click',async()=>{
     activo:document.getElementById('usrNuevoActivo').checked
   };
   if(!nuevo.usuario){usrMsg('Indica el nombre de usuario.','err');return;}
+  if(nuevo.clave){const m=motivoClaveDebil(nuevo.usuario,nuevo.clave);if(m){usrMsg('Contraseña insegura: '+m+'. Usa "🎲 Generar" para crear una segura.','err');return;}}
   try{
-    await nubeAccionUsuario({accion:'guardarUsuario',nuevo:nuevo});
+    const rg=await nubeAccionUsuario({accion:'guardarUsuario',nuevo:nuevo});
     /* ===== FIX CAUSA RAÍZ =====
        Si te cambiaste la clave a ti mismo, el servidor ya tiene la nueva pero
        sesion.clave seguía con la vieja. Desde ese momento CADA guardado
        respondía "No autorizado" aunque la barra siguiera diciendo ADMIN.
        Ahora la sesión se actualiza en el mismo acto. */
     if(nuevo.clave && nuevo.usuario.toLowerCase()===String(sesion.usuario||'').toLowerCase()){
-      sesion.clave=nuevo.clave;
+      sesion.clave=(rg&&rg.token)||nuevo.clave;   // v12: pase nuevo (los anteriores dejan de valer)
       if(nuevo.nombre)sesion.nombre=nuevo.nombre;
       guardarSesionLocal();
       usrMsg('✓ Usuario guardado. Tu sesión se actualizó con la nueva contraseña.','ok');
@@ -3720,7 +3747,8 @@ document.getElementById('usrGuardar').addEventListener('click',async()=>{
         let sesionOk=true;
         try{
           const r=await nubeLogin(sesion.usuario,sesion.clave);
-          sesion={usuario:r.usuario,clave:sesion.clave,rol:r.rol,nombre:r.nombre};
+          /* si lo guardado era la contraseña (versiones anteriores), aquí se cambia por el pase */
+          sesion={usuario:r.usuario,clave:r.token||sesion.clave,rol:r.rol,nombre:r.nombre};
           guardarSesionLocal();
           aplicarSesion();   // refresca rol/nombre por si cambiaron en el servidor
         }catch(e){
@@ -5284,15 +5312,17 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
   function esAdmin(){return sesion.rol==='admin';}
 
   /* ---------- orden de visita: solo el supervisor (admin) lo cambia ----------
-     Mismas paradas que ve el chofer: facturas seguidas del mismo cliente forman
+     Mismas paradas que ve el chofer: facturas del mismo cliente y distrito forman
      una parada y comparten número. */
   let avOrd=null;
   function paradasUnidad(u,prog){
     const ps=pedidos.filter(p=>p.unitId===u.id&&!p.baja).sort((a,b)=>(a.seq||999)-(b.seq||999)||a.id-b.id);
     const out=[];
     const normCli=x=>String(x||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]/g,'');   // igual que en Mi Ruta
-    ps.forEach(p=>{const k=normCli(p.CLIENTES);const ult=out[out.length-1];
-      if(ult&&ult.k===k)ult.peds.push(p);else out.push({k,peds:[p]});});
+    /* igual que Mi Ruta: mismo cliente y mismo distrito = una parada, aunque sus facturas estén separadas */
+    const idxP=new Map();
+    ps.forEach(p=>{const c=normCli(p.CLIENTES),k=c?c+'|'+normCli(p.DISTRITO):'ID'+p.id;let s=idxP.get(k);
+      if(!s){s={k,peds:[]};idxP.set(k,s);out.push(s);}s.peds.push(p);});
     out.forEach((s,i)=>{s.n=i+1;
       const ords=s.peds.map(p=>{const e=estadoDe(prog,p);return e?+e.ordenVisita||0:0;}).filter(Boolean);
       s.ord=ords.length?Math.min(...ords):0;
