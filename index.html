@@ -2215,7 +2215,7 @@ const NUBE_URL_KEY='prove_nube_url';
    "Configurar servidor" y ese valor manda sobre este. */
 /* Sello de version: sirve para saber, sin adivinar, que archivo esta corriendo
    realmente el navegador (GitHub Pages y el cache del movil suelen servir uno viejo). */
-const APP_VERSION='2026-10-20 · planificador-17';
+const APP_VERSION='2026-10-20 · planificador-18';
 const NUBE_URL_DEFECTO='https://script.google.com/macros/s/AKfycbzPfXZFs9GVEfBfDERzGGzxO8OgoRaMOHIg_QO9jOpMP31BkvENFenAP9rubgh_GPcW4Q/exec';
 const SESION_KEY='prove_sesion';
 let sesion={usuario:'',clave:'',rol:'',nombre:''};
@@ -4954,6 +4954,11 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
 .tb-n{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:800;color:#fff;background:#8a939d;flex:none;}
 .tb-n.sin{background:#fff;color:#8a939d;border:1.5px dashed #b8bec6;}
 .tb-x{font-size:10.5px;font-weight:800;color:#5a6b7a;}
+.tb-inc{font-size:10.5px;font-weight:800;color:#fff;background:#d97706;border-radius:5px;padding:0 4px;line-height:15px}
+.tb-p-inc{background:#fff7e8;border:1px solid #f1d5a3;border-left:4px solid #d97706;border-radius:9px;padding:8px 10px;margin:0 0 10px}
+.tb-p-inc h4{margin:0 0 5px;font-size:11.5px;color:#9a5b00;text-transform:uppercase;letter-spacing:.3px}
+.tb-p-inc .it+.it{border-top:1px dashed #ecd2a2;margin-top:7px;padding-top:7px}
+.tb-p-inc b{display:block;font-size:13px}.tb-p-inc p{margin:2px 0 0;font-size:12.5px;color:#3d3420}.tb-p-inc small{display:block;margin-top:2px;font-size:11px;color:#7a8a99}
 .tb-h{margin-left:auto;font-size:10.5px;font-variant-numeric:tabular-nums;color:#5a6b7a;font-weight:700;}
 .tb-c{font-size:11.5px;font-weight:700;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;}
 .tb-f{font-size:10px;color:#6a7b8a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px;margin-top:auto;}
@@ -5052,7 +5057,12 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
   const AV_ORDEN=['TERMINADO','ENTREGA PARCIAL','ANULADO','EN PROCESO','EN RUTA'];
   const AV_FINAL={'TERMINADO':1,'ENTREGA PARCIAL':1,'ANULADO':1};
   const AV_ESPERA=15;   // tolerancia de espera en el cliente (min)
-  let avEstados={}, avProg='', avUlt=0, avErr='', avCargando=false, avAbiertas=new Set(), avEdit=null;
+  let avEstados={}, avProg='', avUlt=0, avErr='', avCargando=false, avAbiertas=new Set(), avEdit=null, avInc=[];
+  /* novedades que registra el reparto en Mi Ruta (Apps Script v12.1) */
+  const NOV_L={'Sobrepasa el limite de tiempo de espera':'Sobrepasa el tiempo de espera','Direccion incorrecta':'Dirección incorrecta','No se encontro al cliente':'No se encontró al cliente','Errores en la documentacion':'Errores en la documentación','Congestion vehicular':'Congestión vehicular'};
+  const novTxt=t=>NOV_L[t]||t;
+  function incDeFilas(filas){const fks=new Set(filas.map(f=>facKey(f.p)));
+    return avInc.filter(i=>i.prog===avProg&&(i.facturas||[]).some(k=>fks.has(k))).sort((a,b)=>(+a.ts||0)-(+b.ts||0));}
 
   function vistaActiva(){const v=document.getElementById('view-avance');return v&&v.classList.contains('active');}
   function facKey(p){return String(p.FACTURA||'').trim().toUpperCase()||('ID'+p.id);}
@@ -5076,7 +5086,7 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
     if(!prog||!pedidos.length){avPintar();return;}
     if(avCargando||!sesion.usuario)return;
     avCargando=true;
-    if(prog!==avProg){avEstados={};avProg=prog;avAbiertas.clear();}
+    if(prog!==avProg){avEstados={};avInc=[];avProg=prog;avAbiertas.clear();}
     if(!silencioso)avPintarTool('Consultando…');
     try{
       const r=await pedirNube({accion:'estadoListar',prog});
@@ -5087,7 +5097,7 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
           :e;
       }else{
         const m={};(r.estados||[]).forEach(x=>{m[x.clave]=x;});
-        if(prog===avProg){avEstados=m;avErr='';avUlt=Date.now();}
+        if(prog===avProg){avEstados=m;avInc=r.incidencias||[];avErr='';avUlt=Date.now();}
       }
     }catch(e){avErr='No se pudo consultar: '+e.message;}
     finally{avCargando=false;}
@@ -5314,7 +5324,7 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
     const zc=zColor(p0.ZONA);
     const tip=tit(p0.CLIENTES)+' · '+tit(p0.DISTRITO)+' · '+tit(p0.ZONA||'')+'\n'+(s.ord?'Visita '+s.ord:'Sin orden del chofer')+' · prog. '+s.n+'\n'+s.filas.map(f=>(f.p.FACTURA||'sin factura')+' — '+f.est).join('\n');
     return `<button class="tb-tile ${AV_EST[s.est].cls}${esSig?' sig':''}${ok?'':' dim'}" data-tbtile="${C.u.id}|${i}" title="${escAttr(tip)}">
-      <span class="tb-top"><span class="tb-n${s.ord?'':' sin'}">${s.ord||s.n}</span>${s.peds.length>1?`<span class="tb-x">×${s.peds.length}</span>`:''}<span class="tb-h">${esc(hora)}</span></span>
+      <span class="tb-top"><span class="tb-n${s.ord?'':' sin'}">${s.ord||s.n}</span>${s.peds.length>1?`<span class="tb-x">×${s.peds.length}</span>`:''}${(()=>{const ni=incDeFilas(s.filas);return ni.length?`<span class="tb-inc" title="${escAttr(ni.length+' novedad(es): '+ni.map(i=>novTxt(i.tipo)).join(', '))}">⚑${ni.length>1?ni.length:''}</span>`:'';})()}<span class="tb-h">${esc(hora)}</span></span>
       <span class="tb-c">${esc(corto(p0.CLIENTES))}</span>
       <span class="tb-f"><i style="background:${zc}"></i>${esc(tit(p0.DISTRITO))}</span></button>`;
   }
@@ -5348,6 +5358,7 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
     const p0=filas[0].p;
     pn.innerHTML=`<div class="tb-p-h"><div><h3>${esc(titulo)}</h3><div class="tb-p-sub">${esc(sub)}</div></div><button class="tb-p-x" id="tbPx" aria-label="Cerrar">×</button></div>
       <div class="tb-p-meta"><span>📍 ${esc(tit(p0.DISTRITO))}</span><span><i style="background:${zColor(p0.ZONA)}"></i>${esc(tit(p0.ZONA||'sin zona'))}</span>${p0.TIPO?`<span>${esc(tit(p0.TIPO))}</span>`:''}</div>
+      ${(()=>{const ni=incDeFilas(filas);return ni.length?`<div class="tb-p-inc"><h4>⚑ Novedades del reparto</h4>${ni.map(i=>`<div class="it"><b>${esc(novTxt(i.tipo))}${i.minutos?' · '+i.minutos+' min':''}</b><p>${esc(i.detalle)}</p><small>${esc(String(i.hora||'').slice(11,16))}${i.nombre?' · '+esc(tit(String(i.nombre).split(/\s+/).slice(0,2).join(' '))):''}${i.facturas&&i.facturas.length>1?' · '+i.facturas.length+' facturas':''}</small></div>`).join('')}</div>`:'';})()}
       ${filas.map(f=>{const e=f.e||{};const m=minFila(f);
         const nota=f.est==='ANULADO'?e.motivo:f.est==='ENTREGA PARCIAL'?e.detalle:'';
         return `<div class="tb-p-fac">
