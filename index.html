@@ -353,6 +353,57 @@ body.rol-visualizador .solo-editor{display:none!important;}
 .usr-rol.admin{background:#ede9fe;color:#6d28d9;}
 .usr-rol.editor{background:#dcfce7;color:#166534;}
 .usr-rol.visualizador{background:#dbeafe;color:#1e40af;}
+/* usuarios: barra fija, alta en un panel plegable, edición dentro de la fila */
+.usr-b{padding-top:12px}
+.usr-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px}
+.usr-q{display:flex;align-items:center;gap:6px;border:1px solid var(--borde);border-radius:8px;padding:0 9px;height:34px;flex:1 1 200px;max-width:280px;background:#fff}
+.usr-q input{border:0;outline:0;flex:1;min-width:0;font-size:12.5px;background:none}
+.usr-esp{flex:1}
+.usr-chip{height:34px;border-radius:99px;padding:0 12px;font-size:12px;background:#fff;color:#7a5200;border:1px solid #f0c66b}
+.usr-chip b{background:#fff4dc;border-radius:99px;padding:1px 7px;margin-left:3px}
+.usr-chip[aria-pressed="true"]{background:#9a5b00;color:#fff;border-color:#9a5b00}.usr-chip[aria-pressed="true"] b{background:rgba(255,255,255,.22)}
+.usr-chip:hover{background:#fff4dc}.usr-chip[aria-pressed="true"]:hover{background:#7f4b00}
+.usr-btn{height:34px;border-radius:8px;padding:0 12px;font-size:12.5px;background:#fff;color:var(--azul2);border:1px solid var(--azul2)}
+.usr-btn:hover{background:var(--gris)}
+.usr-btn.renovar{background:#1a1a1a;color:#fff;border-color:#1a1a1a}.usr-btn.renovar:hover{background:#333}
+.usr-btn.renovar b{background:rgba(255,255,255,.2);border-radius:99px;padding:1px 7px;margin-left:3px}
+.usr-btn:disabled{opacity:.45;cursor:default}
+.usr-btn.nuevo{background:var(--azul2);color:#fff}.usr-btn.nuevo:hover{background:var(--azul3)}
+.usr-nuevo{background:var(--gris);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.usr-nuevo-h{font-size:12px;font-weight:700;color:var(--azul);margin-bottom:8px}
+.usr-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}
+.usr-grid label,.usr-ed label{display:flex;flex-direction:column;gap:3px;font-size:10.5px;font-weight:600;color:var(--azul2);text-transform:uppercase}
+.usr-grid input,.usr-grid select,.usr-ed input,.usr-ed select{height:32px;padding:0 9px;border:1px solid var(--borde);border-radius:7px;font-size:12.5px;text-transform:none;font-weight:400;color:#1a1a1a;background:#fff;width:100%}
+.usr-clave{display:flex;gap:5px}.usr-clave input{flex:1;min-width:0}
+.usr-dado{width:34px;height:32px;flex:none;border-radius:7px;background:#fff;border:1px solid var(--azul2);color:var(--azul2);font-size:15px;padding:0}
+.usr-dado:hover{background:var(--gris)}
+.usr-acc{display:flex;align-items:center;gap:8px;margin-top:10px}
+.usr-chk{font-size:12px;color:var(--azul2);display:flex;align-items:center;gap:5px;text-transform:none!important;flex-direction:row!important}
+.usr-chk input{width:auto!important;height:auto!important}
+.usr-msg{font-size:12px;padding:9px 12px;border-radius:8px;margin-bottom:10px}
+.usr-claves{border:2px solid #1f7a3d;background:#f0fbf3;border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.usr-claves h4{margin:0 0 2px;font-size:13px;color:#14532d}
+.usr-claves p{margin:0 0 8px;font-size:11.5px;color:#3d6b4c}
+.usr-claves ul{list-style:none;margin:0 0 8px;padding:0;display:grid;gap:4px}
+.usr-claves li{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #cfe9d7;border-radius:7px;padding:5px 8px;font-size:12.5px}
+.usr-claves li b{min-width:92px}.usr-claves li span{color:#5a6b7a;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.usr-claves code{font:700 13px ui-monospace,Consolas,monospace;background:#e7f6ec;border-radius:5px;padding:2px 7px;color:#14532d}
+.usr-claves .acc{display:flex;gap:8px;justify-content:flex-end}
+.usr-tabla{max-height:min(56vh,520px);overflow:auto;border:1px solid var(--borde);border-radius:9px}
+.usr-tabla .usr-table{margin-top:0}
+.usr-tabla thead th{position:sticky;top:0;z-index:1}
+.usr-table tr.editando td{background:#fffdf3}
+.usr-table td.usr-a{text-align:right;white-space:nowrap}
+.usr-a button{border-radius:6px;padding:4px 9px;font-size:11.5px;margin-left:4px}
+.usr-a .ed{background:var(--azul2);color:#fff}
+.usr-a .key{background:#fff;color:#1a1a1a;border:1px solid #1a1a1a}.usr-a .key:hover{background:#f4f5f7}
+.usr-a .del{background:#fff;color:var(--rojo);border:1px solid var(--rojo)}.usr-a .del:hover{background:#fee2e2}
+.usr-ed td{background:#fffdf3;border-bottom:2px solid #f0c66b!important}
+.usr-ed .g{display:grid;grid-template-columns:1.3fr 1fr 1.4fr;gap:8px 10px;align-items:end}
+.usr-ed .acc{display:flex;align-items:center;gap:8px;margin-top:8px}
+.usr-table tr.flash td{animation:usrFlash 1.6s ease-out}
+@keyframes usrFlash{0%{background:#d9f7e3}100%{background:transparent}}
+@media(max-width:640px){.usr-grid,.usr-ed .g{grid-template-columns:1fr}.usr-q{max-width:none}}
 
 /* modal historial */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(15,30,45,.55);z-index:100;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;}
@@ -914,25 +965,30 @@ button.ia:hover{background:linear-gradient(100deg,#2d2d2d 0%,#4c1d95 55%,#7c3aed
 <!-- ============ MODAL SINCRONIZACIÓN ============ -->
 <!-- ============ MODAL USUARIOS ============ -->
 <div class="modal-bg" id="usrModal">
-  <div class="modal" style="max-width:640px">
+  <div class="modal" style="max-width:760px">
     <div class="modal-h"><h2>👥 Gestión de usuarios</h2><span class="x" id="usrClose">✕</span></div>
-    <div class="modal-b">
-      <div style="background:var(--gris);border-radius:9px;padding:12px 14px;margin-bottom:14px">
-        <div style="font-size:12px;font-weight:700;color:var(--azul);margin-bottom:9px">Crear o actualizar usuario</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div class="fld"><label style="font-size:10.5px;font-weight:600;color:var(--azul2)">Usuario</label><input type="text" id="usrNuevoUsuario" style="width:100%;padding:8px 10px;border:1px solid var(--borde);border-radius:7px;font-size:12.5px"></div>
-          <div class="fld"><label style="font-size:10.5px;font-weight:600;color:var(--azul2)">Nombre</label><input type="text" id="usrNuevoNombre" style="width:100%;padding:8px 10px;border:1px solid var(--borde);border-radius:7px;font-size:12.5px"></div>
-          <div class="fld"><label style="font-size:10.5px;font-weight:600;color:var(--azul2)">Contraseña</label><div style="display:flex;gap:6px"><input type="text" id="usrNuevaClave" placeholder="(dejar vacío = no cambiar)" autocomplete="off" style="flex:1;min-width:0;padding:8px 10px;border:1px solid var(--borde);border-radius:7px;font-size:12.5px"><button type="button" id="usrGenClave" class="alt" style="padding:0 10px;border-radius:7px;font-size:12px;white-space:nowrap">🎲 Generar</button></div><small style="display:block;font-size:10.5px;color:#6b7a89;margin-top:3px">Mín. 8 caracteres (4 letras o más y números), sin el nombre de usuario. Se guarda cifrada: anótala antes de guardar.</small></div>
-          <div class="fld"><label style="font-size:10.5px;font-weight:600;color:var(--azul2)">Rol</label><select id="usrNuevoRol" style="width:100%;padding:8px 10px;border:1px solid var(--borde);border-radius:7px;font-size:12.5px"><option value="editor">Editor (arma y guarda)</option><option value="visualizador">Visualizador (solo consulta · conductores)</option><option value="admin">Administrador (control total)</option></select></div>
-        </div>
-        <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
-          <label style="font-size:12px;color:var(--azul2)"><input type="checkbox" id="usrNuevoActivo" checked style="vertical-align:-1px"> Activo</label>
-          <span style="flex:1"></span>
-          <button class="green" id="usrGuardar">Guardar usuario</button>
-        </div>
+    <div class="modal-b usr-b">
+      <div class="usr-bar">
+        <div class="usr-q"><span>🔍</span><input type="search" id="usrQ" placeholder="Buscar usuario o nombre" autocomplete="off"></div>
+        <button type="button" class="usr-chip" id="usrSoloDeb" aria-pressed="false">⚠ Solo débiles <b id="usrNDeb">0</b></button>
+        <span class="usr-esp"></span>
+        <button type="button" class="usr-btn renovar" id="usrRenovar" title="Genera y guarda una contraseña segura para cada usuario con contraseña débil">🔑 Renovar débiles <b id="usrNDeb2">0</b></button>
+        <button type="button" class="usr-btn nuevo" id="usrNuevoBtn">＋ Nuevo usuario</button>
       </div>
-      <div id="usrMsg" style="font-size:12px;padding:9px 12px;border-radius:8px;margin-bottom:12px;display:none"></div>
-      <table class="usr-table" id="usrTable"><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th>Contraseña</th><th></th></tr></thead><tbody id="usrBody"></tbody></table>
+      <div class="usr-nuevo" id="usrNuevoCaja" hidden>
+        <div class="usr-nuevo-h">Nuevo usuario</div>
+        <div class="usr-grid">
+          <label>Usuario<input type="text" id="usrNuevoUsuario" autocomplete="off"></label>
+          <label>Nombre<input type="text" id="usrNuevoNombre" autocomplete="off"></label>
+          <label>Contraseña<span class="usr-clave"><input type="text" id="usrNuevaClave" autocomplete="off" placeholder="mín. 8, letras y números"><button type="button" id="usrGenClave" class="usr-dado" title="Generar una segura">🎲</button></span></label>
+          <label>Rol<select id="usrNuevoRol"><option value="visualizador">Visualizador (consulta · conductores)</option><option value="editor">Editor (arma y guarda)</option><option value="admin">Administrador (control total)</option></select></label>
+        </div>
+        <div class="usr-acc"><label class="usr-chk"><input type="checkbox" id="usrNuevoActivo" checked> Activo</label><span class="usr-esp"></span>
+          <button type="button" class="usr-btn" id="usrNuevoCancelar">Cancelar</button><button type="button" class="green" id="usrGuardar">Crear usuario</button></div>
+      </div>
+      <div id="usrMsg" class="usr-msg" style="display:none"></div>
+      <div class="usr-claves" id="usrClaves" hidden></div>
+      <div class="usr-tabla"><table class="usr-table" id="usrTable"><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th>Contraseña</th><th></th></tr></thead><tbody id="usrBody"></tbody></table></div>
     </div>
   </div>
 </div>
@@ -2159,7 +2215,7 @@ const NUBE_URL_KEY='prove_nube_url';
    "Configurar servidor" y ese valor manda sobre este. */
 /* Sello de version: sirve para saber, sin adivinar, que archivo esta corriendo
    realmente el navegador (GitHub Pages y el cache del movil suelen servir uno viejo). */
-const APP_VERSION='2026-10-20 · planificador-16';
+const APP_VERSION='2026-10-20 · planificador-17';
 const NUBE_URL_DEFECTO='https://script.google.com/macros/s/AKfycbzPfXZFs9GVEfBfDERzGGzxO8OgoRaMOHIg_QO9jOpMP31BkvENFenAP9rubgh_GPcW4Q/exec';
 const SESION_KEY='prove_sesion';
 let sesion={usuario:'',clave:'',rol:'',nombre:''};
@@ -3654,35 +3710,123 @@ function generarClave(){
   const a=P[n[0]%P.length];let b=P[n[1]%P.length];if(b===a)b=P[(n[1]+1)%P.length];
   return a+'-'+String(1000+n[2]%9000)+'-'+b;
 }
-async function cargarUsuarios(){
+/* ===== lista de usuarios: buscar, filtrar débiles, editar en la misma fila,
+   renovar la contraseña de uno o de todos los débiles sin subir al formulario ===== */
+let usrLista=[],usrEditando='',usrSoloDeb=false;
+const esYo=u=>String(u||'').toLowerCase()===String(sesion.usuario||'').toLowerCase();
+function claveSegura(us){let g=generarClave();for(let k=0;k<20&&motivoClaveDebil(us,g);k++)g=generarClave();return g;}
+/* guarda un usuario conservando lo que no cambia (el servidor exige rol y activo) */
+async function guardarUsr(u,cambios){
+  const nuevo=Object.assign({usuario:u.usuario,nombre:u.nombre||'',rol:u.rol,activo:u.activo},cambios||{});
+  const rg=await nubeAccionUsuario({accion:'guardarUsuario',nuevo});
+  if(nuevo.clave&&esYo(nuevo.usuario)){
+    sesion.clave=(rg&&rg.token)||nuevo.clave;   // pase nuevo: los anteriores dejan de valer
+    if(nuevo.nombre)sesion.nombre=nuevo.nombre;
+    guardarSesionLocal();reintentarPendientes(true);
+  }
+  return rg;
+}
+function mostrarClaves(lista,titulo){
+  const box=document.getElementById('usrClaves');
+  if(!lista.length){box.hidden=true;return;}
+  box.innerHTML=`<h4>🔑 ${esc(titulo)}</h4><p>Anótalas o cópialas ahora: están cifradas y no se pueden volver a ver.</p>
+    <ul>${lista.map(x=>`<li><b>${esc(x.usuario)}</b><span>${esc(x.nombre||'')}</span><code>${esc(x.clave)}</code><button type="button" class="usr-btn" data-copiar="${escA2(x.usuario+': '+x.clave)}">Copiar</button></li>`).join('')}</ul>
+    <div class="acc"><button type="button" class="usr-btn" id="usrCopiarTodo">📋 Copiar todo</button><button type="button" class="usr-btn" id="usrClavesOk">Ya las anoté</button></div>`;
+  box.hidden=false;
+  const txt=lista.map(x=>x.usuario+(x.nombre?' ('+x.nombre+')':'')+': '+x.clave).join('\n');
+  box.querySelectorAll('[data-copiar]').forEach(b=>b.onclick=()=>copiarTxt(b.dataset.copiar,b));
+  document.getElementById('usrCopiarTodo').onclick=e=>copiarTxt(txt,e.currentTarget);
+  document.getElementById('usrClavesOk').onclick=()=>{box.hidden=true;box.innerHTML='';};
+  box.scrollIntoView({block:'nearest'});
+}
+function escA2(v){return esc(v).replace(/"/g,'&quot;');}
+async function copiarTxt(t,btn){
+  try{await navigator.clipboard.writeText(t);}
+  catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e2){}ta.remove();}
+  if(btn){const o=btn.textContent;btn.textContent='✓ Copiado';setTimeout(()=>btn.textContent=o,1400);}
+}
+function pintarUsuarios(){
   const body=document.getElementById('usrBody');
-  body.innerHTML='<tr><td colspan="6" style="text-align:center;color:#7a8a99">Cargando…</td></tr>';
+  const q=normH(document.getElementById('usrQ').value||'');
+  const deb=usrLista.filter(u=>u.debil===true&&u.activo);
+  document.getElementById('usrNDeb').textContent=deb.length;document.getElementById('usrNDeb2').textContent=deb.length;
+  document.getElementById('usrRenovar').disabled=!deb.length;
+  const chip=document.getElementById('usrSoloDeb');chip.setAttribute('aria-pressed',String(usrSoloDeb));
+  const vis=usrLista.filter(u=>(!usrSoloDeb||u.debil===true)&&(!q||normH(u.usuario+' '+(u.nombre||'')).includes(q)));
+  const rolTxt=r=>r==='admin'?'Admin':r==='editor'?'Editor':'Visualizador';
+  body.innerHTML=vis.map(u=>{
+    const fila=`<tr data-u="${escA2(u.usuario)}"${usrEditando===u.usuario?' class="editando"':''}>
+      <td><b>${esc(u.usuario)}</b>${esYo(u.usuario)?' <small style="color:#7a8a99">(tú)</small>':''}</td>
+      <td>${esc(u.nombre||'')}</td>
+      <td><span class="usr-rol ${esc(u.rol)}">${rolTxt(u.rol)}</span></td>
+      <td>${u.activo?'<span style="color:var(--verde)">Activo</span>':'<span style="color:var(--rojo)">Inactivo</span>'}</td>
+      <td>${u.debil===true?'<span class="usr-debil" title="Contraseña corta, sin números o fácil de adivinar">⚠ Débil</span>':u.debil===false?'<span class="usr-segura">🔒 Segura</span>':'<span style="color:#9aa">—</span>'}</td>
+      <td class="usr-a"><button type="button" class="key" data-key="${escA2(u.usuario)}" title="Generar y guardar una contraseña segura">🔑 Nueva clave</button><button type="button" class="ed" data-edit="${escA2(u.usuario)}">${usrEditando===u.usuario?'Cerrar':'Editar'}</button>${esYo(u.usuario)?'':`<button type="button" class="del" data-del="${escA2(u.usuario)}" title="Eliminar">✕</button>`}</td></tr>`;
+    if(usrEditando!==u.usuario)return fila;
+    return fila+`<tr class="usr-ed"><td colspan="6"><div class="g">
+        <label>Nombre<input type="text" id="edNombre" value="${escA2(u.nombre||'')}"></label>
+        <label>Rol<select id="edRol"><option value="visualizador"${u.rol==='visualizador'?' selected':''}>Visualizador</option><option value="editor"${u.rol==='editor'?' selected':''}>Editor</option><option value="admin"${u.rol==='admin'?' selected':''}>Administrador</option></select></label>
+        <label>Nueva contraseña<span class="usr-clave"><input type="text" id="edClave" placeholder="vacío = no cambiar" autocomplete="off"><button type="button" class="usr-dado" id="edDado" title="Generar una segura">🎲</button></span></label></div>
+      <div class="acc"><label class="usr-chk"><input type="checkbox" id="edActivo"${u.activo?' checked':''}> Activo</label><span class="usr-esp"></span>
+        <button type="button" class="usr-btn" id="edCancelar">Cancelar</button><button type="button" class="green" id="edGuardar">Guardar cambios</button></div></td></tr>`;
+  }).join('')||`<tr><td colspan="6" style="text-align:center;color:#7a8a99;padding:16px">${usrLista.length?'Nadie coincide con el filtro':'Sin usuarios'}</td></tr>`;
+  body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{usrEditando=usrEditando===b.dataset.edit?'':b.dataset.edit;pintarUsuarios();const n=document.getElementById('edNombre');if(n)n.focus();});
+  body.querySelectorAll('[data-key]').forEach(b=>b.onclick=()=>renovarUno(b.dataset.key,b));
+  body.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{
+    if(!confirm('¿Eliminar al usuario "'+b.dataset.del+'"?'))return;
+    try{await nubeAccionUsuario({accion:'eliminarUsuario',objetivo:b.dataset.del});usrMsg('Usuario eliminado.','ok');cargarUsuarios();}
+    catch(e){usrMsg('Error: '+e.message,'err');}
+  });
+  const ed=document.getElementById('edGuardar');
+  if(ed){
+    const u=usrLista.find(x=>x.usuario===usrEditando);
+    document.getElementById('edDado').onclick=()=>{const i=document.getElementById('edClave');i.value=claveSegura(u.usuario);i.select();};
+    document.getElementById('edCancelar').onclick=()=>{usrEditando='';pintarUsuarios();};
+    ed.onclick=async()=>{
+      const cambios={nombre:document.getElementById('edNombre').value.trim(),rol:document.getElementById('edRol').value,activo:document.getElementById('edActivo').checked};
+      const clave=document.getElementById('edClave').value;
+      if(clave){const m=motivoClaveDebil(u.usuario,clave);if(m){usrMsg('Contraseña insegura: '+m+'. Usa 🎲 para generar una segura.','err');return;}cambios.clave=clave;}
+      ed.disabled=true;ed.textContent='Guardando…';
+      try{await guardarUsr(u,cambios);usrMsg('✓ '+u.usuario+' actualizado'+(clave&&esYo(u.usuario)?'. Tu sesión siguió abierta con la nueva contraseña.':'.'),'ok');
+        if(clave)mostrarClaves([{usuario:u.usuario,nombre:cambios.nombre,clave}],'Contraseña nueva');
+        usrEditando='';await cargarUsuarios(u.usuario);}
+      catch(e){usrMsg('Error: '+e.message,'err');ed.disabled=false;ed.textContent='Guardar cambios';}
+    };
+  }
+}
+async function renovarUno(us,btn){
+  const u=usrLista.find(x=>x.usuario===us);if(!u)return;
+  if(!confirm('¿Generar una contraseña nueva para '+us+(u.nombre?' ('+u.nombre+')':'')+'?\n\nLa actual deja de servir y se cierra su sesión en sus equipos.'+(us.toLowerCase()==='patio'?'\n\nOjo: tendrás que volver a ingresar en el equipo de la App Carga en Patio.':'')))return;
+  const clave=claveSegura(us);btn.disabled=true;btn.textContent='Guardando…';
+  try{await guardarUsr(u,{clave});mostrarClaves([{usuario:us,nombre:u.nombre,clave}],'Contraseña nueva');usrMsg('✓ Contraseña de '+us+' cambiada.','ok');await cargarUsuarios(us);}
+  catch(e){usrMsg('Error: '+e.message,'err');btn.disabled=false;btn.textContent='🔑 Nueva clave';}
+}
+async function renovarDebiles(){
+  const deb=usrLista.filter(u=>u.debil===true&&u.activo).sort((a,b)=>esYo(a.usuario)-esYo(b.usuario));   // la tuya, al final
+  if(!deb.length)return;
+  if(!confirm('Se generará una contraseña segura nueva para '+deb.length+' usuario(s):\n\n'+deb.map(u=>'• '+u.usuario+(u.nombre?' ('+u.nombre+')':'')).join('\n')+
+    '\n\nSus contraseñas actuales dejan de servir. Al terminar verás todas las nuevas para copiarlas y enviarlas.'+(deb.some(u=>u.usuario.toLowerCase()==='patio')?'\n\nOjo: tendrás que volver a ingresar en el equipo de la App Carga en Patio.':'')))return;
+  const btn=document.getElementById('usrRenovar');btn.disabled=true;
+  const hechas=[],fallas=[];
+  for(let i=0;i<deb.length;i++){
+    const u=deb[i];btn.textContent='Guardando '+(i+1)+' de '+deb.length+'…';
+    const clave=claveSegura(u.usuario);
+    try{await guardarUsr(u,{clave});hechas.push({usuario:u.usuario,nombre:u.nombre,clave});}
+    catch(e){fallas.push(u.usuario+': '+e.message);}
+  }
+  btn.innerHTML='🔑 Renovar débiles <b id="usrNDeb2">0</b>';
+  mostrarClaves(hechas,'Contraseñas nuevas ('+hechas.length+')');
+  usrMsg(fallas.length?'Se cambiaron '+hechas.length+'. No se pudo con: '+fallas.join(' · '):'✓ Se cambiaron '+hechas.length+' contraseña(s).',fallas.length?'err':'ok');
+  await cargarUsuarios();
+}
+async function cargarUsuarios(resaltar){
+  const body=document.getElementById('usrBody');
+  if(!usrLista.length)body.innerHTML='<tr><td colspan="6" style="text-align:center;color:#7a8a99;padding:16px">Cargando…</td></tr>';
   try{
     const data=await nubeAccionUsuario({accion:'listarUsuarios'});
-    const us=data.usuarios||[];
-    body.innerHTML=us.map(u=>`<tr>
-      <td><b>${esc(u.usuario)}</b></td>
-      <td>${esc(u.nombre||'')}</td>
-      <td><span class="usr-rol ${esc(u.rol)}">${u.rol==='admin'?'Admin':u.rol==='editor'?'Editor':'Visualizador'}</span></td>
-      <td>${u.activo?'<span style="color:var(--verde)">Activo</span>':'<span style="color:var(--rojo)">Inactivo</span>'}</td>
-      <td>${u.debil===true?'<span class="usr-debil" title="Contraseña corta, sin números o fácil de adivinar">⚠ Débil: cámbiala</span>':u.debil===false?'<span class="usr-segura">🔒 Segura</span>':'<span style="color:#9aa">—</span>'}</td>
-      <td style="text-align:right">
-        <button class="mini" style="background:var(--azul2);color:#fff;border:none;border-radius:5px;padding:4px 9px;cursor:pointer" data-edit="${esc(u.usuario)}" data-nombre="${esc(u.nombre||'')}" data-rol="${esc(u.rol)}" data-activo="${u.activo}">Editar</button>
-        ${u.usuario.toLowerCase()!==sesion.usuario.toLowerCase()?`<button class="mini" style="background:#fff;color:var(--rojo);border:1px solid var(--rojo);border-radius:5px;padding:4px 9px;cursor:pointer" data-del="${esc(u.usuario)}">✕</button>`:''}
-      </td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:#7a8a99">Sin usuarios</td></tr>';
-    body.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>{
-      document.getElementById('usrNuevoUsuario').value=b.dataset.edit;
-      document.getElementById('usrNuevoNombre').value=b.dataset.nombre;
-      document.getElementById('usrNuevoRol').value=b.dataset.rol;
-      document.getElementById('usrNuevoActivo').checked=b.dataset.activo==='true';
-      document.getElementById('usrNuevaClave').value='';
-      document.getElementById('usrNuevaClave').placeholder='(dejar vacío = no cambiar)';
-    }));
-    body.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',async()=>{
-      if(!confirm('¿Eliminar al usuario "'+b.dataset.del+'"?'))return;
-      try{await nubeAccionUsuario({accion:'eliminarUsuario',objetivo:b.dataset.del});usrMsg('Usuario eliminado.','ok');cargarUsuarios();}
-      catch(e){usrMsg('Error: '+e.message,'err');}
-    }));
+    usrLista=data.usuarios||[];
+    pintarUsuarios();
+    if(resaltar){const tr=body.querySelector('tr[data-u="'+CSS.escape(resaltar)+'"]');if(tr){tr.classList.add('flash');tr.scrollIntoView({block:'nearest'});}}
   }catch(e){
     body.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--rojo)">'+esc(e.message)+'</td></tr>';
   }
@@ -3690,12 +3834,21 @@ async function cargarUsuarios(){
 document.getElementById('btnUsuarios').addEventListener('click',()=>{
   if(sesion.rol!=='admin')return;
   document.getElementById('usrMsg').style.display='none';
+  document.getElementById('usrClaves').hidden=true;usrEditando='';
   usrModal.classList.add('show');cargarUsuarios();
 });
 document.getElementById('usrClose').addEventListener('click',()=>usrModal.classList.remove('show'));
-document.getElementById('usrGenClave').addEventListener('click',()=>{const i=document.getElementById('usrNuevaClave'),us=document.getElementById('usrNuevoUsuario').value.trim();
-  let g=generarClave();for(let k=0;k<20&&motivoClaveDebil(us,g);k++)g=generarClave();i.value=g;i.select();});
 usrModal.addEventListener('click',e=>{if(e.target===usrModal)usrModal.classList.remove('show');});
+document.getElementById('usrQ').addEventListener('input',pintarUsuarios);
+document.getElementById('usrSoloDeb').addEventListener('click',()=>{usrSoloDeb=!usrSoloDeb;pintarUsuarios();});
+document.getElementById('usrRenovar').addEventListener('click',renovarDebiles);
+function abrirNuevo(abrir){
+  const c=document.getElementById('usrNuevoCaja');c.hidden=!abrir;
+  if(abrir){['usrNuevoUsuario','usrNuevoNombre','usrNuevaClave'].forEach(id=>document.getElementById(id).value='');document.getElementById('usrNuevoRol').value='visualizador';document.getElementById('usrNuevoActivo').checked=true;document.getElementById('usrNuevoUsuario').focus();}
+}
+document.getElementById('usrNuevoBtn').addEventListener('click',()=>abrirNuevo(document.getElementById('usrNuevoCaja').hidden));
+document.getElementById('usrNuevoCancelar').addEventListener('click',()=>abrirNuevo(false));
+document.getElementById('usrGenClave').addEventListener('click',()=>{const i=document.getElementById('usrNuevaClave');i.value=claveSegura(document.getElementById('usrNuevoUsuario').value.trim());i.select();});
 document.getElementById('usrGuardar').addEventListener('click',async()=>{
   const nuevo={
     usuario:document.getElementById('usrNuevoUsuario').value.trim(),
@@ -3705,25 +3858,14 @@ document.getElementById('usrGuardar').addEventListener('click',async()=>{
     activo:document.getElementById('usrNuevoActivo').checked
   };
   if(!nuevo.usuario){usrMsg('Indica el nombre de usuario.','err');return;}
-  if(nuevo.clave){const m=motivoClaveDebil(nuevo.usuario,nuevo.clave);if(m){usrMsg('Contraseña insegura: '+m+'. Usa "🎲 Generar" para crear una segura.','err');return;}}
+  if(usrLista.some(u=>u.usuario.toLowerCase()===nuevo.usuario.toLowerCase())){usrMsg('"'+nuevo.usuario+'" ya existe: usa Editar en su fila.','err');return;}
+  if(!nuevo.clave){usrMsg('El usuario nuevo necesita una contraseña: usa 🎲 para generar una.','err');return;}
+  const m=motivoClaveDebil(nuevo.usuario,nuevo.clave);if(m){usrMsg('Contraseña insegura: '+m+'. Usa 🎲 para generar una segura.','err');return;}
   try{
-    const rg=await nubeAccionUsuario({accion:'guardarUsuario',nuevo:nuevo});
-    /* ===== FIX CAUSA RAÍZ =====
-       Si te cambiaste la clave a ti mismo, el servidor ya tiene la nueva pero
-       sesion.clave seguía con la vieja. Desde ese momento CADA guardado
-       respondía "No autorizado" aunque la barra siguiera diciendo ADMIN.
-       Ahora la sesión se actualiza en el mismo acto. */
-    if(nuevo.clave && nuevo.usuario.toLowerCase()===String(sesion.usuario||'').toLowerCase()){
-      sesion.clave=(rg&&rg.token)||nuevo.clave;   // v12: pase nuevo (los anteriores dejan de valer)
-      if(nuevo.nombre)sesion.nombre=nuevo.nombre;
-      guardarSesionLocal();
-      usrMsg('✓ Usuario guardado. Tu sesión se actualizó con la nueva contraseña.','ok');
-      reintentarPendientes(true);
-    }else{
-      usrMsg('✓ Usuario guardado.','ok');
-    }
-    document.getElementById('usrNuevoUsuario').value='';document.getElementById('usrNuevoNombre').value='';document.getElementById('usrNuevaClave').value='';
-    cargarUsuarios();
+    await nubeAccionUsuario({accion:'guardarUsuario',nuevo});
+    usrMsg('✓ Usuario '+nuevo.usuario+' creado.','ok');
+    mostrarClaves([{usuario:nuevo.usuario,nombre:nuevo.nombre,clave:nuevo.clave}],'Usuario nuevo');
+    abrirNuevo(false);await cargarUsuarios(nuevo.usuario);
   }catch(e){usrMsg('Error: '+e.message,'err');}
 });
 
