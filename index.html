@@ -2215,7 +2215,7 @@ const NUBE_URL_KEY='prove_nube_url';
    "Configurar servidor" y ese valor manda sobre este. */
 /* Sello de version: sirve para saber, sin adivinar, que archivo esta corriendo
    realmente el navegador (GitHub Pages y el cache del movil suelen servir uno viejo). */
-const APP_VERSION='2026-10-20 · planificador-18';
+const APP_VERSION='2026-10-20 · planificador-19';
 const NUBE_URL_DEFECTO='https://script.google.com/macros/s/AKfycbzPfXZFs9GVEfBfDERzGGzxO8OgoRaMOHIg_QO9jOpMP31BkvENFenAP9rubgh_GPcW4Q/exec';
 const SESION_KEY='prove_sesion';
 let sesion={usuario:'',clave:'',rol:'',nombre:''};
@@ -4918,11 +4918,15 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
 .tb-vista button{border:0;background:transparent;color:#4a5866;border-radius:6px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
 .tb-vista button.on{background:#fff;color:var(--negro);box-shadow:0 1px 2px rgba(0,0,0,.15);}
 .tb-excel{border:0;background:var(--verde);color:#fff;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
-.tb-board{--cab:244px;display:flex;flex-direction:column;gap:6px;min-height:0;}
-.tb-row{display:grid;grid-template-columns:var(--cab) repeat(var(--n),minmax(0,190px));gap:6px;flex:1 1 0;min-height:0;position:relative;}
+.tb-board{--cab:236px;display:flex;flex-direction:column;gap:6px;min-height:0;overflow:auto;scrollbar-width:thin;overscroll-behavior:contain;}
+/* filas de alto fijo y legible (108–132 px): si no entran todas, el tablero se desplaza
+   por dentro con la cabecera y la columna de camiones fijas; nunca se aplastan los mosaicos */
+.tb-row{display:grid;grid-template-columns:var(--cab) repeat(var(--n),minmax(108px,190px));gap:6px;flex:0 0 var(--fila,116px);min-height:var(--fila,116px);position:relative;}
+.tb-row>.tb-cab{position:sticky;left:0;z-index:3;}
 .tb-row:not(.tb-head)::before{content:"";position:absolute;left:var(--cab);right:0;top:50%;height:4px;margin-top:-2px;background:repeating-linear-gradient(90deg,#cfd4da 0 10px,transparent 10px 18px);z-index:0;}
-.tb-head{flex:0 0 16px;}
-.tb-head .tb-cab{background:none;border:0;padding:0 4px;font-size:10.5px;color:#8a96a3;font-weight:700;}
+.tb-board>.tb-row.tb-head{flex:0 0 20px;min-height:20px;position:sticky;top:0;z-index:5;background:#f3f5f8;box-shadow:0 1px 0 #e3e7ec;}
+.tb-head .tb-cab{background:#f3f5f8;border:0;border-radius:0;padding:0 4px;font-size:10.5px;color:#8a96a3;font-weight:700;justify-content:center;}
+.tb-head .tb-col{align-self:center;}
 .tb-col{font-size:10.5px;color:#8a96a3;font-weight:700;text-align:center;}
 .tb-cab{position:relative;z-index:1;background:#fff;border:1px solid var(--borde);border-radius:10px;padding:6px 9px;display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:0;overflow:hidden;}
 .tb-row.vivo .tb-cab{box-shadow:inset 4px 0 0 #f59e0b;}
@@ -4954,13 +4958,14 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
 .tb-n{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:800;color:#fff;background:#8a939d;flex:none;}
 .tb-n.sin{background:#fff;color:#8a939d;border:1.5px dashed #b8bec6;}
 .tb-x{font-size:10.5px;font-weight:800;color:#5a6b7a;}
-.tb-inc{font-size:10.5px;font-weight:800;color:#fff;background:#d97706;border-radius:5px;padding:0 4px;line-height:15px}
+.tb-inc{flex:none;font-size:10.5px;font-weight:800;color:#fff;background:#d97706;border-radius:99px;min-width:18px;height:18px;display:inline-grid;place-items:center;padding:0 5px;line-height:1}
+.tb-tile.con-inc{box-shadow:inset 0 -3px 0 #f2b45a;}
 .tb-p-inc{background:#fff7e8;border:1px solid #f1d5a3;border-left:4px solid #d97706;border-radius:9px;padding:8px 10px;margin:0 0 10px}
 .tb-p-inc h4{margin:0 0 5px;font-size:11.5px;color:#9a5b00;text-transform:uppercase;letter-spacing:.3px}
 .tb-p-inc .it+.it{border-top:1px dashed #ecd2a2;margin-top:7px;padding-top:7px}
 .tb-p-inc b{display:block;font-size:13px}.tb-p-inc p{margin:2px 0 0;font-size:12.5px;color:#3d3420}.tb-p-inc small{display:block;margin-top:2px;font-size:11px;color:#7a8a99}
-.tb-h{margin-left:auto;font-size:10.5px;font-variant-numeric:tabular-nums;color:#5a6b7a;font-weight:700;}
-.tb-c{font-size:11.5px;font-weight:700;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;}
+.tb-h{flex:none;margin-left:auto;font-size:10.5px;font-variant-numeric:tabular-nums;color:#5a6b7a;font-weight:700;}
+.tb-c{font-size:12px;font-weight:700;line-height:1.22;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;hyphens:auto;-webkit-hyphens:auto;}
 .tb-f{font-size:10px;color:#6a7b8a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px;margin-top:auto;}
 .tb-f i{width:7px;height:7px;border-radius:50%;flex:none;}
 .tb-tile.TERMINADO{background:#ebf8ef;border-color:#b9e2c6;}.tb-tile.TERMINADO .tb-n{background:#16a34a;}
@@ -4977,7 +4982,7 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
 .tb-board[data-densidad="min"] .tb-f,.tb-board[data-densidad="min"] .tb-placa small,.tb-board[data-densidad="min"] .tb-mini,.tb-board[data-densidad="min"] .tb-prog{display:none;}
 .tb-board[data-densidad="min"] .tb-c{-webkit-line-clamp:1;}
 .tb-board[data-densidad="min"] .tb-cab{gap:1px;padding:3px 8px;}
-.tb-board[data-densidad="amplia"] .tb-c{font-size:12.5px;-webkit-line-clamp:3;}
+.tb-board[data-densidad="amplia"] .tb-c{-webkit-line-clamp:3;}
 .tb-board[data-densidad="amplia"] .tb-n{width:24px;height:24px;font-size:12px;}
 .tb-pie{font-size:11px;color:#6a7b8a;margin-top:6px;}
 .tb-panel{position:fixed;top:0;right:0;height:100vh;width:min(400px,100vw);background:#fff;box-shadow:-12px 0 32px rgba(0,0,0,.2);z-index:90;transform:translateX(105%);transition:transform .18s ease;overflow:auto;}
@@ -5323,7 +5328,8 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
     const esSig=C.sig===s;
     const zc=zColor(p0.ZONA);
     const tip=tit(p0.CLIENTES)+' · '+tit(p0.DISTRITO)+' · '+tit(p0.ZONA||'')+'\n'+(s.ord?'Visita '+s.ord:'Sin orden del chofer')+' · prog. '+s.n+'\n'+s.filas.map(f=>(f.p.FACTURA||'sin factura')+' — '+f.est).join('\n');
-    return `<button class="tb-tile ${AV_EST[s.est].cls}${esSig?' sig':''}${ok?'':' dim'}" data-tbtile="${C.u.id}|${i}" title="${escAttr(tip)}">
+    const conInc=incDeFilas(s.filas).length>0;
+    return `<button class="tb-tile ${AV_EST[s.est].cls}${esSig?' sig':''}${ok?'':' dim'}${conInc?' con-inc':''}" data-tbtile="${C.u.id}|${i}" title="${escAttr(tip)}">
       <span class="tb-top"><span class="tb-n${s.ord?'':' sin'}">${s.ord||s.n}</span>${s.peds.length>1?`<span class="tb-x">×${s.peds.length}</span>`:''}${(()=>{const ni=incDeFilas(s.filas);return ni.length?`<span class="tb-inc" title="${escAttr(ni.length+' novedad(es): '+ni.map(i=>novTxt(i.tipo)).join(', '))}">⚑${ni.length>1?ni.length:''}</span>`:'';})()}<span class="tb-h">${esc(hora)}</span></span>
       <span class="tb-c">${esc(corto(p0.CLIENTES))}</span>
       <span class="tb-f"><i style="background:${zc}"></i>${esc(tit(p0.DISTRITO))}</span></button>`;
@@ -5335,13 +5341,13 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
     const top=b.getBoundingClientRect().top+window.scrollY;
     const pie=26;
     const filas=b.querySelectorAll('.tb-row:not(.tb-head)').length||1;
-    /* llena la pantalla, pero con pocos camiones no estira las filas: máximo 132 px cada una */
-    const disponible=Math.max(filas*58+22,window.innerHeight-top-pie-14);
-    const ideal=22+filas*(132+6);
-    const h=Math.min(disponible,ideal);
-    b.style.height=h+'px';
-    const alto=(h-22)/filas;
-    b.dataset.densidad=alto<62?'min':alto<90?'media':'amplia';
+    /* cada fila entre 108 y 132 px: así el nombre del cliente (3 líneas), la hora y el
+       distrito siempre se leen completos. Si no entran todas, se desplaza el tablero. */
+    const disponible=Math.max(340,window.innerHeight-top-pie-14);
+    const fila=Math.max(108,Math.min(132,Math.floor((disponible-26)/filas)-6));
+    b.style.setProperty('--fila',fila+'px');
+    b.style.height=Math.min(disponible,26+filas*(fila+6))+'px';
+    b.dataset.densidad='amplia';
   }
   window.addEventListener('resize',()=>{if(vistaActiva()&&avVista==='tablero')ajustarAlto();});
 
