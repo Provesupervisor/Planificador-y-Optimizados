@@ -2215,7 +2215,7 @@ const NUBE_URL_KEY='prove_nube_url';
    "Configurar servidor" y ese valor manda sobre este. */
 /* Sello de version: sirve para saber, sin adivinar, que archivo esta corriendo
    realmente el navegador (GitHub Pages y el cache del movil suelen servir uno viejo). */
-const APP_VERSION='2026-10-20 · planificador-22';
+const APP_VERSION='2026-10-20 · planificador-23';
 const NUBE_URL_DEFECTO='https://script.google.com/macros/s/AKfycbzPfXZFs9GVEfBfDERzGGzxO8OgoRaMOHIg_QO9jOpMP31BkvENFenAP9rubgh_GPcW4Q/exec';
 const SESION_KEY='prove_sesion';
 let sesion={usuario:'',clave:'',rol:'',nombre:''};
@@ -4969,6 +4969,24 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
 .tb-p-guia.falta{background:#fff8ec;border-color:#f1d5a3;border-left-color:#d97706}
 .tb-p-guia.falta h5{color:#9a5b00;margin:0}
 .tb-p-guia.falta p{margin:4px 0 0;font-size:12px;color:#5b4a2a}
+.tb-piloto{display:inline-block;margin-left:5px;font-size:9.5px;font-weight:800;color:#1e4f86;background:#e7f0fb;border:1px solid #c9daf0;border-radius:99px;padding:0 6px;line-height:15px;vertical-align:1px;white-space:nowrap}
+.av-piloto-btn b{display:inline-block;min-width:18px;margin-left:3px;background:var(--azul2);color:#fff;border-radius:99px;padding:0 6px;font-size:11px;line-height:17px}
+.pi-intro{margin:0 0 12px;font-size:13px;color:#4a5866;line-height:1.45}
+.pi-modo{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.pi-modo label{display:flex;gap:8px;align-items:flex-start;border:1px solid var(--borde);border-radius:10px;padding:9px 10px;cursor:pointer}
+.pi-modo label:has(input:checked){border-color:var(--azul2);background:#f2f7fd}
+.pi-modo b{display:block;font-size:13px}.pi-modo small{color:#6a7b8a;font-size:11.5px}
+.pi-lista{display:flex;flex-direction:column;gap:6px;max-height:44vh;overflow:auto}
+.pi-lista.apagada{opacity:.45}
+.pi-pl{display:flex;align-items:center;gap:10px;border:1px solid var(--borde);border-radius:10px;padding:8px 10px;cursor:pointer}
+.pi-pl:has(input:checked){border-color:#1e4f86;background:#f2f7fd}
+.pi-pl input{width:18px;height:18px;flex:none}
+.pi-placa{font-weight:800;font-size:13.5px;letter-spacing:.3px;border:1.5px solid #1a1a1a;border-radius:5px;padding:1px 7px;background:#fff}
+.pi-tx{font-size:12.5px;color:#5a6b7a;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pi-msg{color:#b91c1c;font-size:12.5px;margin-top:8px;min-height:1px}
+.pi-ult{margin:10px 0 0;font-size:11.5px;color:#8a97a3;text-align:right}
+.pi-vacio{font-size:13px;color:#6a7b8a}
+@media (max-width:560px){.pi-modo{grid-template-columns:1fr}}
 .gm-rej{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .gm-rej.uno{grid-template-columns:minmax(0,1fr)}
 /* tarjeta de foto: imagen completa (sin recortar) y los datos debajo */
@@ -5105,6 +5123,8 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
   const AV_FINAL={'TERMINADO':1,'ENTREGA PARCIAL':1,'ANULADO':1};
   const AV_ESPERA=15;   // tolerancia de espera en el cliente (min)
   let avEstados={}, avProg='', avUlt=0, avErr='', avCargando=false, avAbiertas=new Set(), avEdit=null, avInc=[];
+  /* piloto de fotos (Apps Script v13.2): qué placas usan la foto de la guía. null = servidor anterior (todas) */
+  let avFotos=null;
   /* novedades que registra el reparto en Mi Ruta (Apps Script v12.1) */
   const NOV_L={'Sobrepasa el limite de tiempo de espera':'Sobrepasa el tiempo de espera','Direccion incorrecta':'Dirección incorrecta','No se encontro al cliente':'No se encontró al cliente','Errores en la documentacion':'Errores en la documentación','Congestion vehicular':'Congestión vehicular'};
   const novTxt=t=>NOV_L[t]||t;
@@ -5120,7 +5140,9 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
   const AV_NEC_FOTO={'TERMINADO':1,'ENTREGA PARCIAL':1};
   const gUrl=new Map(),gNom=new Map(),gErr=new Map(),gCurso=new Set(),gEspera=[];let gActivas=0,gvCtx=null;
   function fotosF(f){return (f&&f.e&&f.e.fotos)||[];}
-  function faltaFoto(f){return !!(f.u&&AV_NEC_FOTO[f.est]&&!fotosF(f).length);}
+  function placaN(p){return String(p||'').toUpperCase().replace(/[^A-Z0-9]/g,'');}
+  function fotoActiva(u){return !avFotos||avFotos.modo==='todos'||(!!u&&(avFotos.placas||[]).includes(placaN(u.placa)));}
+  function faltaFoto(f){return !!(f.u&&fotoActiva(f.u)&&AV_NEC_FOTO[f.est]&&!fotosF(f).length);}
   function fotosLista(filas){const m=new Map();
     filas.forEach(f=>fotosF(f).forEach(x=>{const o=m.get(x.id)||{id:x.id,ts:+x.ts||0,usuario:x.usuario||'',facs:[]};o.facs.push(f.p.FACTURA||'sin número');m.set(x.id,o);}));
     return [...m.values()].sort((a,b)=>a.ts-b.ts);}
@@ -5144,6 +5166,44 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
     if(l.length)return `<div class="tb-p-guia"><h5>📷 Guía firmada${l.length>1?' · '+l.length+' fotos':''}</h5><div class="gm-rej${l.length===1?' uno':''}">${l.map((x,i)=>`<button class="gm" data-gm="${escAttr(x.id)}" data-gfac="${escAttr(f.p.id)}" data-gi="${i}" data-info="${escAttr(JSON.stringify(x))}" title="Ver la foto">${gMini(x)}</button>`).join('')}</div></div>`;
     if(faltaFoto(f))return `<div class="tb-p-guia falta"><h5>📷 Falta la foto de la guía</h5><p>Si el celular del chofer estaba sin señal, llega sola cuando la recupere.</p></div>`;
     return '';
+  }
+  /* ---------- piloto de fotos: elegir placas ---------- */
+  function abrirPiloto(){
+    let m=document.getElementById('pilotoModal');
+    if(!m){m=document.createElement('div');m.className='modal-bg';m.id='pilotoModal';document.body.appendChild(m);
+      m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});}
+    const cfg=avFotos||{modo:'piloto',placas:[]};
+    const vistas=new Set();const placas=[];
+    unidades.forEach(u=>{const k=placaN(u.placa);if(k&&!vistas.has(k)){vistas.add(k);placas.push({k,txt:u.placa,ruta:u.ruta||'',pers:u.personal||''});}});
+    (cfg.placas||[]).forEach(k=>{if(!vistas.has(k)){vistas.add(k);placas.push({k,txt:k,ruta:'',pers:'(no está en esta programación)'});}});
+    const sel=new Set(cfg.placas||[]);
+    m.innerHTML=`<div class="modal" style="max-width:520px"><div class="modal-h"><h2>📷 Piloto de fotos de la guía</h2><span class="x" id="piX">×</span></div>
+      <div class="modal-b">
+        <p class="pi-intro">Elige qué camiones usan la foto de la guía firmada en Mi Ruta. Solo esos choferes y auxiliares verán la cámara y deberán tomar la foto para marcar la entrega; el servidor rechaza fotos de los demás. Vale para todos los días hasta que lo cambies.</p>
+        <div class="pi-modo">
+          <label><input type="radio" name="piModo" value="piloto" ${cfg.modo!=='todos'?'checked':''}> <span><b>Solo los camiones elegidos</b><small>Piloto</small></span></label>
+          <label><input type="radio" name="piModo" value="todos" ${cfg.modo==='todos'?'checked':''}> <span><b>Todos los camiones</b><small>Cuando el piloto termine</small></span></label>
+        </div>
+        <div class="pi-lista" id="piLista">${placas.length?placas.map(x=>`<label class="pi-pl"><input type="checkbox" value="${escAttr(x.k)}" ${sel.has(x.k)?'checked':''}><span class="pi-placa">${esc(x.txt)}</span><span class="pi-tx">${x.ruta?'Ruta '+esc(x.ruta)+' · ':''}${esc(tit(x.pers))}</span></label>`).join(''):'<p class="pi-vacio">Carga una programación para ver las placas.</p>'}</div>
+        <div class="pi-msg" id="piMsg"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="alt" id="piNo">Cancelar</button><button class="green" id="piOk">Guardar</button></div>
+        ${cfg.por?`<p class="pi-ult">Último cambio: ${esc(cfg.por)}${cfg.en?' · '+esc(String(cfg.en).slice(0,16)):''}</p>`:''}
+      </div></div>`;
+    const lista=m.querySelector('#piLista');
+    const sync=()=>{const todos=m.querySelector('input[name=piModo]:checked').value==='todos';lista.classList.toggle('apagada',todos);lista.querySelectorAll('input').forEach(i=>i.disabled=todos);};
+    m.querySelectorAll('input[name=piModo]').forEach(r=>r.onchange=sync);sync();
+    const cerrar=()=>m.classList.remove('show');
+    m.querySelector('#piX').onclick=cerrar;m.querySelector('#piNo').onclick=cerrar;
+    m.querySelector('#piOk').onclick=async()=>{
+      const modo=m.querySelector('input[name=piModo]:checked').value;
+      const pl=[...lista.querySelectorAll('input:checked')].map(i=>i.value);
+      const b=m.querySelector('#piOk'),msg=m.querySelector('#piMsg');b.disabled=true;b.textContent='Guardando…';msg.textContent='';
+      try{const r=await pedirNube({accion:'fotoPiloto',config:{modo,placas:pl}});
+        if(!r||!r.ok)throw new Error(/desconocida/i.test((r&&r.error)||'')?'Publica el Apps Script v13.2 para usar el piloto':(r&&r.error)||'respuesta inválida');
+        avFotos=r.fotos;cerrar();avPintar();
+      }catch(e){msg.textContent='No se pudo guardar: '+e.message;b.disabled=false;b.textContent='Guardar';}
+    };
+    m.classList.add('show');
   }
   function gAbrir(lista,i,titulo){if(!lista.length)return;gvCtx={lista,i,titulo};gvPintar();document.getElementById('gVisor').classList.add('on');}
   function gCerrar(){gvCtx=null;const v=document.getElementById('gVisor');if(v){v.classList.remove('on');v.innerHTML='';}}
@@ -5200,6 +5260,7 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
       }else{
         const m={};(r.estados||[]).forEach(x=>{m[x.clave]=x;});
         if(prog===avProg){avEstados=m;avInc=r.incidencias||[];avErr='';avUlt=Date.now();}
+        if(r.fotos)avFotos=r.fotos;
       }
     }catch(e){avErr='No se pudo consultar: '+e.message;}
     finally{avCargando=false;}
@@ -5226,10 +5287,12 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
       <span class="av-upd">${esc(msgUpd||(avUlt?'Actualizado '+new Date(avUlt).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'}):''))}</span>
       <label class="av-chk" title="Vuelve a consultar sola cada 30 segundos"><input type="checkbox" id="avAuto" ${avAuto?'checked':''}> Auto</label>
       <button class="alt" id="avRefrescar">⟳ Actualizar</button>
+      ${puedeEditar()?`<button class="alt av-piloto-btn" id="avPiloto" title="Elegir qué camiones usan la foto de la guía firmada en Mi Ruta">📷 Piloto de fotos${avFotos?` <b>${avFotos.modo==='todos'?'todos':(avFotos.placas||[]).length}</b>`:''}</button>`:''}
       <button class="alt" id="avCopiar" title="Copia el enlace de la app de los choferes, para mandarlo por WhatsApp">📱 Enlace Mi Ruta</button>`;
     t.querySelectorAll('[data-tbvista]').forEach(b=>b.onclick=()=>{avVista=b.dataset.tbvista;try{localStorage.setItem('av_vista',avVista);}catch(e){}avPintar();});
     const bx=document.getElementById('tbExcel');if(bx)bx.onclick=()=>exportarExcel(construir(progClave()));
     document.getElementById('avRefrescar').onclick=()=>avCargar(false);
+    const bp=document.getElementById('avPiloto');if(bp)bp.onclick=abrirPiloto;
     document.getElementById('avAuto').onchange=e=>{avAuto=e.target.checked;try{localStorage.setItem('av_auto',avAuto?'1':'0');}catch(x){}};
     document.getElementById('avCopiar').onclick=async()=>{
       const u=urlApp();
@@ -5404,7 +5467,7 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
         :C.conOrd.length?`<span class="tb-gris" title="El chofer está armando su orden">🔢 sin confirmar</span>`:`<span class="tb-gris" title="El chofer aún no ordena su ruta: se muestra el orden programado">🔢 orden prog.</span>`;
       html+=`<div class="tb-row${C.ahora?' vivo':''}${algun?'':' apagada'}" data-tbrow="${u.id}">
         <div class="tb-cab">
-          <button class="tb-placa" data-tbplaca="${escAttr(u.placa||'')}" title="Ver solo este camión"><span class="av-ruta">${esc(u.ruta||'·')}</span><span><b>${esc(u.placa||'Sin placa')}</b><small>${esc(tit(u.personal||''))}</small></span></button>
+          <button class="tb-placa" data-tbplaca="${escAttr(u.placa||'')}" title="Ver solo este camión"><span class="av-ruta">${esc(u.ruta||'·')}</span><span><b>${esc(u.placa||'Sin placa')}</b>${avFotos&&avFotos.modo!=='todos'&&fotoActiva(u)?'<span class="tb-piloto" title="Este camión está en el piloto de fotos">Piloto 📷</span>':''}<small>${esc(tit(u.personal||''))}</small></span></button>
           <div class="tb-prog"><b>${C.pct}%</b> ${C.hechas}/${C.filas.length}<div class="tb-mini">${C.filas.map(f=>`<span style="background:${AV_EST[f.est].c}"></span>`).join('')}</div></div>
           <div class="tb-linea">${linea}${ord}${esAdmin()?`<button class="tb-ord" data-avord="${u.id}" title="Editar orden de visita (solo admin)" aria-label="Editar orden de visita de ${escAttr(u.placa||'')}">✏️</button>`:''}</div>
         </div>${tiles}${extra}</div>`;
