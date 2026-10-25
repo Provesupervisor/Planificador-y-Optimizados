@@ -2215,7 +2215,7 @@ const NUBE_URL_KEY='prove_nube_url';
    "Configurar servidor" y ese valor manda sobre este. */
 /* Sello de version: sirve para saber, sin adivinar, que archivo esta corriendo
    realmente el navegador (GitHub Pages y el cache del movil suelen servir uno viejo). */
-const APP_VERSION='2026-10-20 · planificador-19';
+const APP_VERSION='2026-10-20 · planificador-20';
 const NUBE_URL_DEFECTO='https://script.google.com/macros/s/AKfycbzPfXZFs9GVEfBfDERzGGzxO8OgoRaMOHIg_QO9jOpMP31BkvENFenAP9rubgh_GPcW4Q/exec';
 const SESION_KEY='prove_sesion';
 let sesion={usuario:'',clave:'',rol:'',nombre:''};
@@ -4960,6 +4960,35 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
 .tb-x{font-size:10.5px;font-weight:800;color:#5a6b7a;}
 .tb-inc{flex:none;font-size:10.5px;font-weight:800;color:#fff;background:#d97706;border-radius:99px;min-width:18px;height:18px;display:inline-grid;place-items:center;padding:0 5px;line-height:1}
 .tb-tile.con-inc{box-shadow:inset 0 -3px 0 #f2b45a;}
+.tb-foto{flex:none;font-size:10px;color:#fff;background:#1e4f86;border-radius:99px;min-width:18px;height:18px;display:inline-grid;place-items:center;padding:0 4px;line-height:1}
+.tb-foto.falta{background:#fff;color:#b45309;border:1.5px dashed #d97706}
+.tb-est.foto i{background:#1e4f86!important}
+.tb-est.foto.falta-on{border-color:#d97706}
+.tb-p-guia{margin:10px 0 2px;padding:9px 10px 10px;border-radius:9px;background:#f6f9fd;border:1px solid #cfdcec;border-left:4px solid #1e4f86}
+.tb-p-guia h5{margin:0 0 7px;font-size:11.5px;color:#1e4f86;text-transform:uppercase;letter-spacing:.3px;display:flex;align-items:center;gap:6px}
+.tb-p-guia.falta{background:#fff8ec;border-color:#f1d5a3;border-left-color:#d97706}
+.tb-p-guia.falta h5{color:#9a5b00;margin:0}
+.tb-p-guia.falta p{margin:4px 0 0;font-size:12px;color:#5b4a2a}
+.gm-rej{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.gm{position:relative;border:0;padding:0;border-radius:7px;overflow:hidden;background:#dfe6ef;aspect-ratio:3/4;cursor:zoom-in;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.gm img{width:100%;height:100%;object-fit:cover;display:block}
+.gm .gm-car{position:absolute;inset:0;display:grid;place-items:center;font-size:10.5px;color:#5b6f86;text-align:center;padding:4px}
+.gm .gm-h{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(transparent,rgba(10,20,35,.8));color:#fff;font-size:10.5px;padding:10px 5px 4px;text-align:left}
+.av-fotobtn{border:1px solid #cfdcec;background:#f6f9fd;color:#1e4f86;border-radius:999px;padding:2px 8px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+.av-fotofalta{color:#b45309;font-size:11.5px;font-weight:700;white-space:nowrap}
+.gv{position:fixed;inset:0;z-index:400;background:#0b0d11;display:none;flex-direction:column}
+.gv.on{display:flex}
+.gv-cab{display:flex;align-items:center;gap:10px;padding:10px 16px;color:#fff}
+.gv-cab .tx{flex:1;min-width:0}.gv-cab b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gv-cab small{display:block;color:#b8c0ca;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gv-cab a,.gv-cab button{flex:none;display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border-radius:9px;border:0;background:rgba(255,255,255,.14);color:#fff;font:600 14px inherit;font-family:inherit;text-decoration:none;cursor:pointer}
+.gv-cab .gv-x{width:38px;padding:0;justify-content:center;font-size:22px}
+.gv-cuerpo{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:0 70px 14px;position:relative}
+.gv-cuerpo img{max-width:100%;max-height:100%;object-fit:contain;border-radius:4px;background:#fff;box-shadow:0 6px 30px rgba(0,0,0,.5)}
+.gv-nav{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;border:2px solid rgba(255,255,255,.55);background:rgba(0,0,0,.6);color:#fff;font-size:28px;line-height:1;cursor:pointer}
+.gv-nav.ant{left:14px}.gv-nav.sig{right:14px}
+.gv-msg{color:#cfd5dc;font-size:14px}
+@media (max-width:700px){.gv-cuerpo{padding:0 8px 10px}.gv-cab a span{display:none}}
 .tb-p-inc{background:#fff7e8;border:1px solid #f1d5a3;border-left:4px solid #d97706;border-radius:9px;padding:8px 10px;margin:0 0 10px}
 .tb-p-inc h4{margin:0 0 5px;font-size:11.5px;color:#9a5b00;text-transform:uppercase;letter-spacing:.3px}
 .tb-p-inc .it+.it{border-top:1px dashed #ecd2a2;margin-top:7px;padding-top:7px}
@@ -5070,6 +5099,57 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
     return avInc.filter(i=>i.prog===avProg&&(i.facturas||[]).some(k=>fks.has(k))).sort((a,b)=>(+a.ts||0)-(+b.ts||0));}
 
   function vistaActiva(){const v=document.getElementById('view-avance');return v&&v.classList.contains('active');}
+
+  /* ---------- fotos de la guía firmada (Apps Script v13) ----------
+     Cada estado trae "fotos":[{id,ts,usuario}]. La imagen se pide con fotoVer
+     (usuario y pase, no es pública) y se guarda en memoria para no volver a
+     descargarla con cada actualización. */
+  const AV_NEC_FOTO={'TERMINADO':1,'ENTREGA PARCIAL':1};
+  const gUrl=new Map(),gNom=new Map(),gErr=new Map(),gCurso=new Set(),gEspera=[];let gActivas=0,gvCtx=null;
+  function fotosF(f){return (f&&f.e&&f.e.fotos)||[];}
+  function faltaFoto(f){return !!(f.u&&AV_NEC_FOTO[f.est]&&!fotosF(f).length);}
+  function fotosLista(filas){const m=new Map();
+    filas.forEach(f=>fotosF(f).forEach(x=>{const o=m.get(x.id)||{id:x.id,ts:+x.ts||0,usuario:x.usuario||'',facs:[]};o.facs.push(f.p.FACTURA||'sin número');m.set(x.id,o);}));
+    return [...m.values()].sort((a,b)=>a.ts-b.ts);}
+  function gHora(ts){return ts?new Date(+ts).toLocaleTimeString('es-PE',{timeZone:'America/Lima',hour:'2-digit',minute:'2-digit',hour12:false}):'';}
+  function gPedir(id){
+    if(gUrl.has(id)||gCurso.has(id))return;gCurso.add(id);gErr.delete(id);
+    const t=async()=>{gActivas++;
+      try{const r=await pedirNube({accion:'fotoVer',id});
+        if(!r||!r.ok)throw new Error((r&&r.error)||'no se pudo abrir la foto');
+        const bin=atob(r.datos),u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);
+        gUrl.set(id,URL.createObjectURL(new Blob([u8],{type:r.mime||'image/jpeg'})));gNom.set(id,r.nombre||'guia.jpg');
+      }catch(e){gErr.set(id,/desconocida/i.test(e.message)?'Publica el Apps Script v13 para ver las fotos':e.message);}
+      finally{gActivas--;gCurso.delete(id);gRepintar(id);const n=gEspera.shift();if(n)n();}};
+    if(gActivas<3)t();else gEspera.push(t);
+  }
+  function gMini(x){const u=gUrl.get(x.id),er=gErr.get(x.id);
+    return (u?`<img src="${u}" alt="Guía firmada">`:`<span class="gm-car">${er?'No se pudo abrir · toca para reintentar':'Cargando…'}</span>`)+`<span class="gm-h">${esc(gHora(x.ts))}${x.usuario?' · '+esc(tit(x.usuario)):''}</span>`;}
+  function gRepintar(id){document.querySelectorAll('[data-gm="'+id+'"]').forEach(b=>{b.innerHTML=gMini(JSON.parse(b.dataset.info));});if(gvCtx&&gvCtx.lista[gvCtx.i].id===id)gvPintar();}
+  function guiaHtml(f){
+    const l=fotosLista([f]);
+    if(l.length)return `<div class="tb-p-guia"><h5>📷 Guía firmada${l.length>1?' · '+l.length+' fotos':''}</h5><div class="gm-rej">${l.map((x,i)=>`<button class="gm" data-gm="${escAttr(x.id)}" data-gfac="${escAttr(f.p.id)}" data-gi="${i}" data-info="${escAttr(JSON.stringify(x))}" title="Ver la foto">${gMini(x)}</button>`).join('')}</div></div>`;
+    if(faltaFoto(f))return `<div class="tb-p-guia falta"><h5>📷 Falta la foto de la guía</h5><p>Si el celular del chofer estaba sin señal, llega sola cuando la recupere.</p></div>`;
+    return '';
+  }
+  function gAbrir(lista,i,titulo){if(!lista.length)return;gvCtx={lista,i,titulo};gvPintar();document.getElementById('gVisor').classList.add('on');}
+  function gCerrar(){gvCtx=null;const v=document.getElementById('gVisor');if(v){v.classList.remove('on');v.innerHTML='';}}
+  function gvPintar(){
+    let v=document.getElementById('gVisor');
+    if(!v){v=document.createElement('div');v.id='gVisor';v.className='gv';v.setAttribute('role','dialog');v.setAttribute('aria-label','Foto de la guía firmada');document.body.appendChild(v);}
+    const c=gvCtx;if(!c)return;const x=c.lista[c.i],u=gUrl.get(x.id),er=gErr.get(x.id);if(!u&&!er)gPedir(x.id);
+    v.innerHTML=`<div class="gv-cab"><div class="tx"><b>${esc(c.titulo)} · ${esc(x.facs.join(' + '))}</b><small>${c.lista.length>1?'Foto '+(c.i+1)+' de '+c.lista.length+' · ':'Guía firmada · '}${x.ts?'tomada a las '+esc(gHora(x.ts)):''}${x.usuario?' por '+esc(tit(x.usuario)):''}</small></div>
+      ${u?`<a href="${u}" download="${escAttr(gNom.get(x.id)||'guia.jpg')}">⬇ <span>Descargar</span></a>`:''}<button class="gv-x" id="gvX" aria-label="Cerrar">×</button></div>
+      <div class="gv-cuerpo">${u?`<img src="${u}" alt="Guía firmada">`:`<p class="gv-msg">${er?esc('No se pudo abrir la foto: '+er):'Cargando la foto…'}</p>`}
+      ${c.lista.length>1?'<button class="gv-nav ant" id="gvA" aria-label="Anterior">‹</button><button class="gv-nav sig" id="gvS" aria-label="Siguiente">›</button>':''}</div>`;
+    document.getElementById('gvX').onclick=gCerrar;
+    const mv=d=>{c.i=(c.i+d+c.lista.length)%c.lista.length;gvPintar();};
+    if(c.lista.length>1){document.getElementById('gvA').onclick=()=>mv(-1);document.getElementById('gvS').onclick=()=>mv(1);}
+    v.querySelector('.gv-cuerpo').onclick=e=>{if(e.target.classList.contains('gv-cuerpo'))gCerrar();};
+  }
+  document.addEventListener('keydown',e=>{if(!gvCtx)return;
+    if(e.key==='Escape'){e.stopImmediatePropagation();gCerrar();}
+    else if(gvCtx.lista.length>1&&(e.key==='ArrowRight'||e.key==='ArrowLeft')){gvCtx.i=(gvCtx.i+(e.key==='ArrowRight'?1:-1)+gvCtx.lista.length)%gvCtx.lista.length;gvPintar();}},true);
   function facKey(p){return String(p.FACTURA||'').trim().toUpperCase()||('ID'+p.id);}
   function progClave(){const d=progFechaActual();return d?claveProg(fechaISO(d),turnoActual):'';}
   function hm(t){return t?String(t).slice(11,16):'';}
@@ -5207,6 +5287,7 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
   function pasaEst(f,est){
     if(!est)return true;
     if(est==='pend')return f.est==='EN RUTA'||f.est==='EN PROCESO';
+    if(est==='sinfoto')return faltaFoto(f);
     return f.est===est;
   }
   function coincide(f){
@@ -5267,7 +5348,9 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
     return `<div class="tb-barra">
       <div class="tb-avance" title="${hechas} de ${n} facturas atendidas"><b>${pct}%</b><span>${hechas}/${n}</span>
         <div class="tb-barrita">${['TERMINADO','ENTREGA PARCIAL','ANULADO','EN PROCESO'].filter(k=>t[k]).map(k=>`<span style="width:${t[k]/Math.max(1,n)*100}%;background:${COL[k]}"></span>`).join('')}</div></div>
-      <div class="tb-ests" role="group" aria-label="Filtrar por estado">${chips}</div>
+      <div class="tb-ests" role="group" aria-label="Filtrar por estado">${chips}${(()=>{
+        const ent=todasLasFilas(D).filter(f=>f.u&&AV_NEC_FOTO[f.est]),con=ent.filter(f=>fotosF(f).length).length,sin=ent.length-con;
+        return ent.length?`<button class="tb-est foto${avF.est==='sinfoto'?' on':''}${sin?' falta-on':''}" data-tbest="sinfoto" aria-pressed="${avF.est==='sinfoto'}" title="${sin?'Toca para ver las entregas que aún no tienen foto':'Todas las entregas tienen su foto'}"><i></i>📷 <b>${con}/${ent.length}</b> guías con foto${sin?` · ${sin} sin foto`:''}</button>`:'';})()}</div>
       <div class="tb-filtros">
         <select id="tbPlaca" aria-label="Filtrar por placa">${optPl}</select>
         <select id="tbZona" aria-label="Filtrar por zona">${optZo}</select>
@@ -5374,10 +5457,13 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
           ${e.horaLlegada?`<dt>Llegó</dt><dd>${esc(hm(e.horaLlegada))}</dd>`:''}${e.horaFin?`<dt>Terminó</dt><dd>${esc(hm(e.horaFin))}</dd>`:''}
           ${m!=null&&m>=0?`<dt>En el cliente</dt><dd class="${m>AV_ESPERA&&f.est==='EN PROCESO'?'lento':''}">${m} min</dd>`:''}
           ${nota?`<dt>${f.est==='ANULADO'?'Motivo':'Rechazado'}</dt><dd class="${f.est==='ANULADO'?'mot':'det'}">${esc(nota)}</dd>`:''}
-          ${f.p.OBSERVACION?`<dt>Observación</dt><dd>${esc(f.p.OBSERVACION)}</dd>`:''}</dl></div>`;}).join('')}`;
+          ${f.p.OBSERVACION?`<dt>Observación</dt><dd>${esc(f.p.OBSERVACION)}</dd>`:''}</dl>${guiaHtml(f)}</div>`;}).join('')}`;
     pn.classList.add('abierto');
     document.getElementById('tbPx').onclick=cerrarPanel;
     pn.querySelectorAll('[data-aved]').forEach(b=>b.onclick=()=>abrirEdicion(+b.dataset.aved));
+    pn.querySelectorAll('[data-gm]').forEach(b=>{gPedir(b.dataset.gm);b.onclick=()=>{const id=b.dataset.gm;
+      if(gErr.has(id)){gPedir(id);gRepintar(id);return;}
+      const f=filas.find(x=>String(x.p.id)===b.dataset.gfac);gAbrir(fotosLista([f]),+b.dataset.gi,tit(f.p.CLIENTES));};});
     document.querySelectorAll('.tb-tile.elegido').forEach(x=>x.classList.remove('elegido'));
     const sel=tbSel.sin!=null?document.querySelector(`[data-tbsin="${tbSel.sin}"]`):document.querySelector(`[data-tbtile="${tbSel.uid}|${tbSel.i}"]`);
     if(sel)sel.classList.add('elegido');
@@ -5389,7 +5475,7 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
   /* ---------- tabla: misma información, una fila por factura, mismos filtros ---------- */
   function vistaTabla(D){
     const filas=todasLasFilas(D).filter(coincide);
-    let html='',grupo=null;const COLS=16;
+    let html='',grupo=null;const COLS=17;
     filas.forEach(f=>{
       const g=f.u?f.u.id:'sin';
       if(g!==grupo){
@@ -5414,11 +5500,12 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
         <td class="num${lento?' lento':''}">${m!=null&&m>=0?m:''}</td>
         <td class="num">${num(f.p['UNIDADES COMPLETAS'])||''}</td><td class="num">${num(f.p['UNIDADES PARTES'])||''}</td>
         <td class="nota">${nota?`<span class="${f.est==='ANULADO'?'mot':'det'}">${esc(nota)}</span>`:''}</td>
+        <td>${fotosF(f).length?`<button class="av-fotobtn" data-avfoto="${escAttr(f.p.id)}" title="Ver la foto de la guía firmada">📷 ${fotosF(f).length}</button>`:faltaFoto(f)?'<span class="av-fotofalta" title="Entregada sin foto de la guía">Falta</span>':''}</td>
         <td class="obs">${esc(f.p.OBSERVACION||'')}</td></tr>`;
     });
     if(!filas.length)html=`<tr><td colspan="${COLS}" class="av-vacio-td">Ninguna factura coincide con el filtro.</td></tr>`;
     return `<div class="av-gen"><div class="av-gen-cont"><table class="av-gtab">
-        <thead><tr><th>Placa</th><th title="Orden de visita del chofer">Visita</th><th title="N° programado">Prog.</th><th>Cliente</th><th>Factura</th><th>Distrito</th><th>Zona</th><th>Asesor</th><th>Estado</th><th>Llegó</th><th>Fin</th><th title="Minutos en el cliente">Min</th><th title="Unidades completas">Compl.</th><th title="Unidades partes">Partes</th><th>Motivo / rechazo</th><th>Observación</th></tr></thead>
+        <thead><tr><th>Placa</th><th title="Orden de visita del chofer">Visita</th><th title="N° programado">Prog.</th><th>Cliente</th><th>Factura</th><th>Distrito</th><th>Zona</th><th>Asesor</th><th>Estado</th><th>Llegó</th><th>Fin</th><th title="Minutos en el cliente">Min</th><th title="Unidades completas">Compl.</th><th title="Unidades partes">Partes</th><th>Motivo / rechazo</th><th title="Foto de la guía firmada">Guía</th><th>Observación</th></tr></thead>
         <tbody>${html}</tbody></table></div>
       <div class="av-gen-pie">${filas.length} de ${todasLasFilas(D).length} facturas · ordenadas por camión y orden de visita</div></div>`;
   }
@@ -5431,6 +5518,7 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
     cont.querySelectorAll('[data-tbtile]').forEach(b=>b.onclick=()=>{const [u,i]=b.dataset.tbtile.split('|');tbSel={uid:+u,i:+i};pintarPanel(D);});
     cont.querySelectorAll('[data-tbsin]').forEach(b=>b.onclick=()=>{tbSel={sin:+b.dataset.tbsin};pintarPanel(D);});
     cont.querySelectorAll('[data-aved]').forEach(b=>b.onclick=()=>abrirEdicion(+b.dataset.aved));
+    cont.querySelectorAll('[data-avfoto]').forEach(b=>b.onclick=()=>{const f=todasLasFilas(D).find(x=>String(x.p.id)===b.dataset.avfoto);if(f)gAbrir(fotosLista([f]),0,tit(f.p.CLIENTES));});
     cont.querySelectorAll('[data-avord]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();abrirOrden(+b.dataset.avord);});
     const pl=document.getElementById('tbPlaca');if(pl)pl.onchange=()=>{avF.placa=pl.value;avPintar();};
     const zo=document.getElementById('tbZona');if(zo)zo.onchange=()=>{avF.zona=zo.value;avPintar();};
@@ -5448,10 +5536,11 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
         'Cliente':f.p.CLIENTES||'','Factura':f.p.FACTURA||'','Distrito':f.p.DISTRITO||'','Zona':f.p.ZONA||'','Tipo':f.p.TIPO||'','Asesor':f.p.ASESOR||'',
         'Estado':f.u?f.est:'SIN CAMIÓN','Llegó':hm(e.horaLlegada),'Terminó':hm(e.horaFin),'Min en cliente':m!=null&&m>=0?m:'',
         'Unid. completas':num(f.p['UNIDADES COMPLETAS'])||0,'Unid. partes':num(f.p['UNIDADES PARTES'])||0,
-        'Motivo / rechazo':(f.est==='ANULADO'?e.motivo:f.est==='ENTREGA PARCIAL'?e.detalle:'')||'','Observación':f.p.OBSERVACION||''};});
+        'Motivo / rechazo':(f.est==='ANULADO'?e.motivo:f.est==='ENTREGA PARCIAL'?e.detalle:'')||'',
+        'Foto guía':fotosF(f).length?('Sí ('+fotosF(f).length+')'):faltaFoto(f)?'FALTA':'','Observación':f.p.OBSERVACION||''};});
     if(!filas.length){alert('No hay filas para descargar con el filtro actual.');return;}
     const ws=XLSX.utils.json_to_sheet(filas);
-    ws['!cols']=[10,11,5,10,22,7,8,30,13,18,10,10,22,15,7,8,8,8,8,28,28].map(w=>({wch:w}));
+    ws['!cols']=[10,11,5,10,22,7,8,30,13,18,10,10,22,15,7,8,8,8,8,28,10,28].map(w=>({wch:w}));
     ws['!autofilter']={ref:ws['!ref']};
     const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Avance');
     XLSX.writeFile(wb,'Avance_de_ruta_'+(d?fechaPE(d).replace(/\//g,'-'):'')+'_'+(turnoActual==='2'?'2do':'1er')+'_turno.xlsx');
