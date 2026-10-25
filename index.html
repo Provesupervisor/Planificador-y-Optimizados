@@ -2215,7 +2215,7 @@ const NUBE_URL_KEY='prove_nube_url';
    "Configurar servidor" y ese valor manda sobre este. */
 /* Sello de version: sirve para saber, sin adivinar, que archivo esta corriendo
    realmente el navegador (GitHub Pages y el cache del movil suelen servir uno viejo). */
-const APP_VERSION='2026-10-20 · planificador-21';
+const APP_VERSION='2026-10-20 · planificador-22';
 const NUBE_URL_DEFECTO='https://script.google.com/macros/s/AKfycbzPfXZFs9GVEfBfDERzGGzxO8OgoRaMOHIg_QO9jOpMP31BkvENFenAP9rubgh_GPcW4Q/exec';
 const SESION_KEY='prove_sesion';
 let sesion={usuario:'',clave:'',rol:'',nombre:''};
@@ -4969,11 +4969,18 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
 .tb-p-guia.falta{background:#fff8ec;border-color:#f1d5a3;border-left-color:#d97706}
 .tb-p-guia.falta h5{color:#9a5b00;margin:0}
 .tb-p-guia.falta p{margin:4px 0 0;font-size:12px;color:#5b4a2a}
-.gm-rej{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.gm{position:relative;border:0;padding:0;border-radius:7px;overflow:hidden;background:#dfe6ef;aspect-ratio:3/4;cursor:zoom-in;box-shadow:0 1px 3px rgba(0,0,0,.15)}
-.gm img{width:100%;height:100%;object-fit:cover;display:block}
-.gm .gm-car{position:absolute;inset:0;display:grid;place-items:center;font-size:10.5px;color:#5b6f86;text-align:center;padding:4px}
-.gm .gm-h{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(transparent,rgba(10,20,35,.8));color:#fff;font-size:10.5px;padding:10px 5px 4px;text-align:left}
+.gm-rej{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.gm-rej.uno{grid-template-columns:minmax(0,1fr)}
+/* tarjeta de foto: imagen completa (sin recortar) y los datos debajo */
+.gm{display:flex;flex-direction:column;border:1px solid #d3deeb;padding:0;border-radius:9px;overflow:hidden;background:#fff;cursor:zoom-in;text-align:left;font-family:inherit;color:inherit;min-width:0;transition:box-shadow .15s,border-color .15s}
+.gm:hover,.gm:focus-visible{border-color:#1e4f86;box-shadow:0 3px 10px rgba(16,40,70,.16)}
+.gm .gm-img{position:relative;display:block;aspect-ratio:4/3;background:#e9eef4;border-bottom:1px solid #e1e8f0}
+.gm-rej.uno .gm-img{aspect-ratio:16/10}
+.gm img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+.gm .gm-zoom{position:absolute;right:5px;top:5px;width:24px;height:24px;border-radius:6px;background:rgba(10,20,35,.62);color:#fff;display:grid;place-items:center;font-size:13px;line-height:1}
+.gm .gm-car{position:absolute;inset:0;display:grid;place-items:center;font-size:11px;color:#5b6f86;text-align:center;padding:6px}
+.gm .gm-h{display:block;padding:5px 8px 6px;font-size:11.5px;line-height:1.3;color:#5b6470}
+.gm .gm-h b{color:#1a1a1a;font-weight:700}
 .av-fotobtn{border:1px solid #cfdcec;background:#f6f9fd;color:#1e4f86;border-radius:999px;padding:2px 8px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
 .av-fotofalta{color:#b45309;font-size:11.5px;font-weight:700;white-space:nowrap}
 .gv{position:fixed;inset:0;z-index:400;background:#0b0d11;display:none;flex-direction:column}
@@ -5130,11 +5137,11 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
     if(gActivas<3)t();else gEspera.push(t);
   }
   function gMini(x){const u=gUrl.get(x.id),er=gErr.get(x.id);
-    return (u?`<img src="${u}" alt="Guía firmada">`:`<span class="gm-car">${er?'No se pudo abrir · toca para reintentar':'Cargando…'}</span>`)+`<span class="gm-h">${esc(gHora(x.ts))}${x.usuario?' · '+esc(tit(x.usuario)):''}</span>`;}
+    return `<span class="gm-img">${u?`<img src="${u}" alt="Guía firmada"><span class="gm-zoom" aria-hidden="true">⤢</span>`:`<span class="gm-car">${er?'No se pudo abrir · toca para reintentar':'Cargando…'}</span>`}</span>`+`<span class="gm-h"><b>${esc(gHora(x.ts))}</b>${x.usuario?' · '+esc(tit(x.usuario)):''}</span>`;}
   function gRepintar(id){document.querySelectorAll('[data-gm="'+id+'"]').forEach(b=>{b.innerHTML=gMini(JSON.parse(b.dataset.info));});if(gvCtx&&gvCtx.lista[gvCtx.i].id===id)gvPintar();}
   function guiaHtml(f){
     const l=fotosLista([f]);
-    if(l.length)return `<div class="tb-p-guia"><h5>📷 Guía firmada${l.length>1?' · '+l.length+' fotos':''}</h5><div class="gm-rej">${l.map((x,i)=>`<button class="gm" data-gm="${escAttr(x.id)}" data-gfac="${escAttr(f.p.id)}" data-gi="${i}" data-info="${escAttr(JSON.stringify(x))}" title="Ver la foto">${gMini(x)}</button>`).join('')}</div></div>`;
+    if(l.length)return `<div class="tb-p-guia"><h5>📷 Guía firmada${l.length>1?' · '+l.length+' fotos':''}</h5><div class="gm-rej${l.length===1?' uno':''}">${l.map((x,i)=>`<button class="gm" data-gm="${escAttr(x.id)}" data-gfac="${escAttr(f.p.id)}" data-gi="${i}" data-info="${escAttr(JSON.stringify(x))}" title="Ver la foto">${gMini(x)}</button>`).join('')}</div></div>`;
     if(faltaFoto(f))return `<div class="tb-p-guia falta"><h5>📷 Falta la foto de la guía</h5><p>Si el celular del chofer estaba sin señal, llega sola cuando la recupere.</p></div>`;
     return '';
   }
