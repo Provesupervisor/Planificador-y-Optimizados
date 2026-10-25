@@ -2215,7 +2215,7 @@ const NUBE_URL_KEY='prove_nube_url';
    "Configurar servidor" y ese valor manda sobre este. */
 /* Sello de version: sirve para saber, sin adivinar, que archivo esta corriendo
    realmente el navegador (GitHub Pages y el cache del movil suelen servir uno viejo). */
-const APP_VERSION='2026-10-20 · planificador-20';
+const APP_VERSION='2026-10-20 · planificador-21';
 const NUBE_URL_DEFECTO='https://script.google.com/macros/s/AKfycbzPfXZFs9GVEfBfDERzGGzxO8OgoRaMOHIg_QO9jOpMP31BkvENFenAP9rubgh_GPcW4Q/exec';
 const SESION_KEY='prove_sesion';
 let sesion={usuario:'',clave:'',rol:'',nombre:''};
@@ -4988,6 +4988,12 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
 .gv-nav{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;border:2px solid rgba(255,255,255,.55);background:rgba(0,0,0,.6);color:#fff;font-size:28px;line-height:1;cursor:pointer}
 .gv-nav.ant{left:14px}.gv-nav.sig{right:14px}
 .gv-msg{color:#cfd5dc;font-size:14px}
+.gv-cuerpo img{cursor:zoom-in}
+.gv-cuerpo.zoom{overflow:auto;display:block;padding:0 16px 14px}
+.gv-cuerpo.zoom img{max-width:none;max-height:none;cursor:zoom-out;margin:0 auto;display:block}
+.gv-cuerpo.zoom .gv-nav{position:fixed}
+.gv-tip{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);background:rgba(0,0,0,.65);color:#fff;font-size:12.5px;padding:5px 12px;border-radius:99px;pointer-events:none}
+.gv-cuerpo.zoom .gv-tip{display:none}
 @media (max-width:700px){.gv-cuerpo{padding:0 8px 10px}.gv-cab a span{display:none}}
 .tb-p-inc{background:#fff7e8;border:1px solid #f1d5a3;border-left:4px solid #d97706;border-radius:9px;padding:8px 10px;margin:0 0 10px}
 .tb-p-inc h4{margin:0 0 5px;font-size:11.5px;color:#9a5b00;text-transform:uppercase;letter-spacing:.3px}
@@ -5140,10 +5146,14 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
     const c=gvCtx;if(!c)return;const x=c.lista[c.i],u=gUrl.get(x.id),er=gErr.get(x.id);if(!u&&!er)gPedir(x.id);
     v.innerHTML=`<div class="gv-cab"><div class="tx"><b>${esc(c.titulo)} · ${esc(x.facs.join(' + '))}</b><small>${c.lista.length>1?'Foto '+(c.i+1)+' de '+c.lista.length+' · ':'Guía firmada · '}${x.ts?'tomada a las '+esc(gHora(x.ts)):''}${x.usuario?' por '+esc(tit(x.usuario)):''}</small></div>
       ${u?`<a href="${u}" download="${escAttr(gNom.get(x.id)||'guia.jpg')}">⬇ <span>Descargar</span></a>`:''}<button class="gv-x" id="gvX" aria-label="Cerrar">×</button></div>
-      <div class="gv-cuerpo">${u?`<img src="${u}" alt="Guía firmada">`:`<p class="gv-msg">${er?esc('No se pudo abrir la foto: '+er):'Cargando la foto…'}</p>`}
+      <div class="gv-cuerpo${c.zoom?' zoom':''}">${u?`<img src="${u}" alt="Guía firmada" id="gvImg"><span class="gv-tip">Clic en la foto para verla en tamaño real</span>`:`<p class="gv-msg">${er?esc('No se pudo abrir la foto: '+er):'Cargando la foto…'}</p>`}
       ${c.lista.length>1?'<button class="gv-nav ant" id="gvA" aria-label="Anterior">‹</button><button class="gv-nav sig" id="gvS" aria-label="Siguiente">›</button>':''}</div>`;
     document.getElementById('gvX').onclick=gCerrar;
-    const mv=d=>{c.i=(c.i+d+c.lista.length)%c.lista.length;gvPintar();};
+    const gi=document.getElementById('gvImg');
+    if(gi)gi.onclick=e=>{e.stopPropagation();const cu=v.querySelector('.gv-cuerpo'),r=gi.getBoundingClientRect(),fx=(e.clientX-r.left)/r.width,fy=(e.clientY-r.top)/r.height;
+      c.zoom=!c.zoom;cu.classList.toggle('zoom',c.zoom);
+      if(c.zoom)requestAnimationFrame(()=>{cu.scrollLeft=gi.offsetWidth*fx-cu.clientWidth/2;cu.scrollTop=gi.offsetHeight*fy-cu.clientHeight/2;});};
+    const mv=d=>{c.i=(c.i+d+c.lista.length)%c.lista.length;c.zoom=false;gvPintar();};
     if(c.lista.length>1){document.getElementById('gvA').onclick=()=>mv(-1);document.getElementById('gvS').onclick=()=>mv(1);}
     v.querySelector('.gv-cuerpo').onclick=e=>{if(e.target.classList.contains('gv-cuerpo'))gCerrar();};
   }
