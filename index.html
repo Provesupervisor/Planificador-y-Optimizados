@@ -2215,7 +2215,7 @@ const NUBE_URL_KEY='prove_nube_url';
    "Configurar servidor" y ese valor manda sobre este. */
 /* Sello de version: sirve para saber, sin adivinar, que archivo esta corriendo
    realmente el navegador (GitHub Pages y el cache del movil suelen servir uno viejo). */
-const APP_VERSION='2026-10-20 · planificador-23';
+const APP_VERSION='2026-10-20 · planificador-24';
 const NUBE_URL_DEFECTO='https://script.google.com/macros/s/AKfycbzPfXZFs9GVEfBfDERzGGzxO8OgoRaMOHIg_QO9jOpMP31BkvENFenAP9rubgh_GPcW4Q/exec';
 const SESION_KEY='prove_sesion';
 let sesion={usuario:'',clave:'',rol:'',nombre:''};
@@ -4981,8 +4981,8 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
 .pi-pl{display:flex;align-items:center;gap:10px;border:1px solid var(--borde);border-radius:10px;padding:8px 10px;cursor:pointer}
 .pi-pl:has(input:checked){border-color:#1e4f86;background:#f2f7fd}
 .pi-pl input{width:18px;height:18px;flex:none}
-.pi-placa{font-weight:800;font-size:13.5px;letter-spacing:.3px;border:1.5px solid #1a1a1a;border-radius:5px;padding:1px 7px;background:#fff}
-.pi-tx{font-size:12.5px;color:#5a6b7a;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pi-placa{flex:none;white-space:nowrap;min-width:84px;text-align:center;font-weight:800;font-size:13.5px;letter-spacing:.3px;border:1.5px solid #1a1a1a;border-radius:5px;padding:1px 7px;background:#fff}
+.pi-tx{flex:1;font-size:12.5px;color:#5a6b7a;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pi-msg{color:#b91c1c;font-size:12.5px;margin-top:8px;min-height:1px}
 .pi-ult{margin:10px 0 0;font-size:11.5px;color:#8a97a3;text-align:right}
 .pi-vacio{font-size:13px;color:#6a7b8a}
