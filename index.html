@@ -361,6 +361,15 @@ body.rol-visualizador .solo-editor{display:none!important;}
 .usr-q{display:flex;align-items:center;gap:6px;border:1px solid var(--borde);border-radius:8px;padding:0 9px;height:34px;flex:1 1 200px;max-width:280px;background:#fff}
 .usr-q input{border:0;outline:0;flex:1;min-width:0;font-size:12.5px;background:none}
 .usr-esp{flex:1}
+/* v26: celular corporativo del personal */
+.usr-nom{display:block}
+.usr-cel{display:inline-flex;align-items:center;gap:4px;margin-top:3px;font-size:11.5px;font-weight:600;line-height:1;letter-spacing:.3px;color:#3d4b59;font-variant-numeric:tabular-nums;white-space:nowrap}
+.usr-cel svg{width:11px;height:11px;flex:none;color:#8a96a3}
+button.usr-cel.falta{font:600 10.5px/1 inherit;font-family:inherit;letter-spacing:0;color:#a65d00;background:#fffaf2;border:1px dashed #f0c27a;border-radius:99px;padding:3px 8px 3px 6px;cursor:pointer}
+button.usr-cel.falta:hover{background:#fff1dc;border-style:solid}
+button.usr-cel.falta svg{color:#d08a1a}
+.usr-hint{font-size:9.5px;font-weight:500;color:#8a96a3;text-transform:none;margin-left:4px;letter-spacing:0}
+.usr-grid input[type=tel],.usr-ed input[type=tel]{font-variant-numeric:tabular-nums;letter-spacing:.4px}
 .usr-chip{height:34px;border-radius:99px;padding:0 12px;font-size:12px;background:#fff;color:#7a5200;border:1px solid #f0c66b}
 .usr-chip b{background:#fff4dc;border-radius:99px;padding:1px 7px;margin-left:3px}
 .usr-chip[aria-pressed="true"]{background:#9a5b00;color:#fff;border-color:#9a5b00}.usr-chip[aria-pressed="true"] b{background:rgba(255,255,255,.22)}
@@ -404,7 +413,7 @@ body.rol-visualizador .solo-editor{display:none!important;}
 .usr-a .key{background:#fff;color:#1a1a1a;border:1px solid #1a1a1a}.usr-a .key:hover{background:#f4f5f7}
 .usr-a .del{background:#fff;color:var(--rojo);border:1px solid var(--rojo)}.usr-a .del:hover{background:#fee2e2}
 .usr-ed td{background:#fffdf3;border-bottom:2px solid #f0c66b!important}
-.usr-ed .g{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.4fr;gap:8px 10px;align-items:end}
+.usr-ed .g{display:grid;grid-template-columns:1.25fr 1fr 1fr .95fr 1.35fr;gap:8px 10px;align-items:end}
 .usr-ed .acc{display:flex;align-items:center;gap:8px;margin-top:8px}
 .usr-table tr.flash td{animation:usrFlash 1.6s ease-out}
 @keyframes usrFlash{0%{background:#d9f7e3}100%{background:transparent}}
@@ -988,6 +997,7 @@ button.ia:hover{background:linear-gradient(100deg,#2d2d2d 0%,#4c1d95 55%,#7c3aed
           <label>Contraseña<span class="usr-clave"><input type="text" id="usrNuevaClave" autocomplete="off" placeholder="mín. 8, letras y números"><button type="button" id="usrGenClave" class="usr-dado" title="Generar una segura">🎲</button></span></label>
           <label>Rol<select id="usrNuevoRol"><option value="visualizador">Visualizador (consulta · conductores)</option><option value="editor">Editor (arma y guarda)</option><option value="admin">Administrador (control total)</option></select></label>
           <label>Puesto<select id="usrNuevoPuesto"></select></label>
+          <label><span>Celular<span class="usr-hint">· corporativo, lo ven los asesores en Seguimiento</span></span><input type="tel" id="usrNuevoCel" inputmode="tel" autocomplete="off" placeholder="987 654 321" maxlength="16"></label>
           <label id="usrNuevoOtroL" hidden>¿Qué puesto?<input type="text" id="usrNuevoOtro" autocomplete="off" placeholder="Ej. ALMACENERO" maxlength="40"></label>
         </div>
         <div class="usr-acc"><label class="usr-chk"><input type="checkbox" id="usrNuevoActivo" checked> Activo</label><span class="usr-esp"></span>
@@ -2226,7 +2236,7 @@ const NUBE_URL_KEY='prove_nube_url';
    "Configurar servidor" y ese valor manda sobre este. */
 /* Sello de version: sirve para saber, sin adivinar, que archivo esta corriendo
    realmente el navegador (GitHub Pages y el cache del movil suelen servir uno viejo). */
-const APP_VERSION='2026-11-02 · planificador-25';
+const APP_VERSION='2026-11-03 · planificador-26';
 const NUBE_URL_DEFECTO='https://script.google.com/macros/s/AKfycbzPfXZFs9GVEfBfDERzGGzxO8OgoRaMOHIg_QO9jOpMP31BkvENFenAP9rubgh_GPcW4Q/exec';
 const SESION_KEY='prove_sesion';
 let sesion={usuario:'',clave:'',rol:'',nombre:''};
@@ -3729,6 +3739,19 @@ function ptoBadge(p){const t=String(p||'');if(!t)return '<span class="usr-pto na
   return `<span class="usr-pto ${/CHOF|CONDUC/i.test(t)?'ch':/AUXIL|AYUD/i.test(t)?'ax':''}">${esc(ptoTxt(t))}</span>`;}
 function opcionesPuesto(actual){const a=String(actual||'').toUpperCase(),lista=PUESTOS.slice();if(a&&!lista.includes(a))lista.push(a);
   return '<option value="">— elegir puesto —</option>'+lista.map(p=>`<option value="${escA2(p)}"${p===a?' selected':''}>${esc(ptoTxt(p))}</option>`).join('')+'<option value="__OTRO__">Otro…</option>';}
+/* ===== CELULAR (v26): corporativo de choferes y auxiliares; Seguimiento lo muestra a los asesores ===== */
+const IC_CEL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg>';
+const esRepartoP=t=>/CHOF|CONDUC|AUXIL|AYUD/i.test(String(t||''));
+function leerCel(v){const d=String(v||'').replace(/\D/g,'');return d.length===11&&d.startsWith('51')?d.slice(2):d;}
+const celValido=n=>/^9\d{8}$/.test(n);
+function celFmt(n){n=String(n||'');return /^\d{9}$/.test(n)?n.replace(/(\d{3})(\d{3})(\d{3})/,'$1 $2 $3'):n;}
+/* al salir del campo se ordena en grupos de 3 */
+function enlazarCel(id){const i=document.getElementById(id);if(!i)return;i.onblur=()=>{const n=leerCel(i.value);if(celValido(n))i.value=celFmt(n);};}
+function celLinea(u){
+  if(u.cel===undefined)return '';                     // Apps Script anterior a la v13.5
+  if(u.cel)return `<span class="usr-cel" title="Celular corporativo">${IC_CEL}${esc(celFmt(u.cel))}</span>`;
+  return esRepartoP(u.puesto)?`<button type="button" class="usr-cel falta" data-celed="${escA2(u.usuario)}" title="Los asesores lo verán en Seguimiento">${IC_CEL}Agregar celular</button>`:'';
+}
 /* ===== lista de usuarios: buscar, filtrar débiles, editar en la misma fila,
    renovar la contraseña de uno o de todos los débiles sin subir al formulario ===== */
 let usrLista=[],usrEditando='',usrSoloDeb=false;
@@ -3776,7 +3799,7 @@ function pintarUsuarios(){
   body.innerHTML=vis.map(u=>{
     const fila=`<tr data-u="${escA2(u.usuario)}"${usrEditando===u.usuario?' class="editando"':''}>
       <td><b>${esc(u.usuario)}</b>${esYo(u.usuario)?' <small style="color:#7a8a99">(tú)</small>':''}</td>
-      <td>${esc(u.nombre||'')}</td>
+      <td><span class="usr-nom">${esc(u.nombre||'')}</span>${celLinea(u)}</td>
       <td>${u.puesto===undefined?'<span style="color:#9aa">—</span>':ptoBadge(u.puesto)}</td>
       <td><span class="usr-rol ${esc(u.rol)}">${rolTxt(u.rol)}</span></td>
       <td>${u.activo?'<span style="color:var(--verde)">Activo</span>':'<span style="color:var(--rojo)">Inactivo</span>'}</td>
@@ -3786,6 +3809,7 @@ function pintarUsuarios(){
     return fila+`<tr class="usr-ed"><td colspan="7"><div class="g">
         <label>Nombre<input type="text" id="edNombre" value="${escA2(u.nombre||'')}"></label>
         <label>Puesto<select id="edPuesto">${opcionesPuesto(u.puesto)}</select><input type="text" id="edOtro" placeholder="¿Qué puesto?" maxlength="40" hidden style="margin-top:4px"></label>
+        <label>Celular<input type="tel" id="edCel" inputmode="tel" autocomplete="off" placeholder="987 654 321" maxlength="16" value="${escA2(celFmt(u.cel||''))}"></label>
         <label>Rol<select id="edRol"><option value="visualizador"${u.rol==='visualizador'?' selected':''}>Visualizador</option><option value="editor"${u.rol==='editor'?' selected':''}>Editor</option><option value="admin"${u.rol==='admin'?' selected':''}>Administrador</option></select></label>
         <label>Nueva contraseña<span class="usr-clave"><input type="text" id="edClave" placeholder="vacío = no cambiar" autocomplete="off"><button type="button" class="usr-dado" id="edDado" title="Generar una segura">🎲</button></span></label></div>
       <div class="acc"><label class="usr-chk"><input type="checkbox" id="edActivo"${u.activo?' checked':''}> Activo</label><span class="usr-esp"></span>
@@ -3793,6 +3817,7 @@ function pintarUsuarios(){
   }).join('')||`<tr><td colspan="7" style="text-align:center;color:#7a8a99;padding:16px">${usrLista.length?'Nadie coincide con el filtro':'Sin usuarios'}</td></tr>`;
   body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{usrEditando=usrEditando===b.dataset.edit?'':b.dataset.edit;pintarUsuarios();const n=document.getElementById('edNombre');if(n)n.focus();});
   body.querySelectorAll('[data-key]').forEach(b=>b.onclick=()=>renovarUno(b.dataset.key,b));
+  body.querySelectorAll('[data-celed]').forEach(b=>b.onclick=()=>{usrEditando=b.dataset.celed;pintarUsuarios();const c=document.getElementById('edCel');if(c)c.focus();});
   body.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{
     if(!confirm('¿Eliminar al usuario "'+b.dataset.del+'"?'))return;
     try{await nubeAccionUsuario({accion:'eliminarUsuario',objetivo:b.dataset.del});usrMsg('Usuario eliminado.','ok');cargarUsuarios();}
@@ -3801,12 +3826,15 @@ function pintarUsuarios(){
   const ed=document.getElementById('edGuardar');
   if(ed){
     const u=usrLista.find(x=>x.usuario===usrEditando);
-    enlazarOtro('edPuesto','edOtro');
+    enlazarOtro('edPuesto','edOtro');enlazarCel('edCel');
     document.getElementById('edDado').onclick=()=>{const i=document.getElementById('edClave');i.value=claveSegura(u.usuario);i.select();};
     document.getElementById('edCancelar').onclick=()=>{usrEditando='';pintarUsuarios();};
     ed.onclick=async()=>{
       const cambios={nombre:document.getElementById('edNombre').value.trim(),rol:document.getElementById('edRol').value,activo:document.getElementById('edActivo').checked};
       const pto=leerPuesto('edPuesto','edOtro');if(pto===null&&document.getElementById('edPuesto').value==='__OTRO__'){usrMsg('Escribe el puesto de '+u.usuario+' en "¿Qué puesto?".','err');return;}cambios.puesto=pto||'';
+      const cel=leerCel(document.getElementById('edCel').value);
+      if(cel&&!celValido(cel)){usrMsg('El celular de '+u.usuario+' debe tener 9 dígitos y empezar con 9 (ej. 987 654 321).','err');document.getElementById('edCel').focus();return;}
+      if(cel!==(u.cel||''))cambios.cel=cel;
       const clave=document.getElementById('edClave').value;
       if(clave){const m=motivoClaveDebil(u.usuario,clave);if(m){usrMsg('Contraseña insegura: '+m+'. Usa 🎲 para generar una segura.','err');return;}cambios.clave=clave;}
       ed.disabled=true;ed.textContent='Guardando…';
@@ -3867,7 +3895,7 @@ document.getElementById('usrSoloDeb').addEventListener('click',()=>{usrSoloDeb=!
 document.getElementById('usrRenovar').addEventListener('click',renovarDebiles);
 function abrirNuevo(abrir){
   const c=document.getElementById('usrNuevoCaja');c.hidden=!abrir;
-  if(abrir){document.getElementById('usrNuevoPuesto').innerHTML=opcionesPuesto('');document.getElementById('usrNuevoOtroL').hidden=true;document.getElementById('usrNuevoOtro').value='';
+  if(abrir){document.getElementById('usrNuevoPuesto').innerHTML=opcionesPuesto('');document.getElementById('usrNuevoCel').value='';document.getElementById('usrNuevoOtroL').hidden=true;document.getElementById('usrNuevoOtro').value='';
     ['usrNuevoUsuario','usrNuevoNombre','usrNuevaClave'].forEach(id=>document.getElementById(id).value='');document.getElementById('usrNuevoRol').value='visualizador';document.getElementById('usrNuevoActivo').checked=true;document.getElementById('usrNuevoUsuario').focus();}
 }
 document.getElementById('usrNuevoBtn').addEventListener('click',()=>abrirNuevo(document.getElementById('usrNuevoCaja').hidden));
@@ -3876,7 +3904,7 @@ document.getElementById('usrNuevoCancelar').addEventListener('click',()=>abrirNu
 function leerPuesto(selId,otroId){const v=document.getElementById(selId).value;if(v==='__OTRO__'){const t=document.getElementById(otroId).value.trim().toUpperCase();return t||null;}return v||null;}
 function enlazarOtro(selId,otroId){const sl=document.getElementById(selId),ot=document.getElementById(otroId),caja=ot.closest('label')&&ot.closest('label').id?ot.closest('label'):ot;
   sl.onchange=()=>{caja.hidden=sl.value!=='__OTRO__';if(!caja.hidden)ot.focus();};}
-enlazarOtro('usrNuevoPuesto','usrNuevoOtro');
+enlazarOtro('usrNuevoPuesto','usrNuevoOtro');enlazarCel('usrNuevoCel');
 /* el personal nuevo o editado aparece al tiro en las listas de chofer y auxiliar */
 function refrescarPersonal(){try{personalListo=false;personalError='';cargarPersonal(true);}catch(e){}}
 document.getElementById('usrGenClave').addEventListener('click',()=>{const i=document.getElementById('usrNuevaClave');i.value=claveSegura(document.getElementById('usrNuevoUsuario').value.trim());i.select();});
@@ -3887,11 +3915,14 @@ document.getElementById('usrGuardar').addEventListener('click',async()=>{
     clave:document.getElementById('usrNuevaClave').value,
     rol:document.getElementById('usrNuevoRol').value,
     activo:document.getElementById('usrNuevoActivo').checked,
-    puesto:leerPuesto('usrNuevoPuesto','usrNuevoOtro')
+    puesto:leerPuesto('usrNuevoPuesto','usrNuevoOtro'),
+    cel:leerCel(document.getElementById('usrNuevoCel').value)
   };
   if(!nuevo.usuario){usrMsg('Indica el nombre de usuario.','err');return;}
   if(usrLista.some(u=>u.usuario.toLowerCase()===nuevo.usuario.toLowerCase())){usrMsg('"'+nuevo.usuario+'" ya existe: usa Editar en su fila.','err');return;}
   if(nuevo.puesto===null){usrMsg('Elige el puesto: con Chofer o Auxiliar de reparto aparece en las listas al armar cada camión.','err');return;}
+  if(nuevo.cel&&!celValido(nuevo.cel)){usrMsg('El celular debe tener 9 dígitos y empezar con 9 (ej. 987 654 321).','err');document.getElementById('usrNuevoCel').focus();return;}
+  if(!nuevo.cel&&esRepartoP(nuevo.puesto)){usrMsg('Escribe el celular corporativo de '+(nuevo.nombre||nuevo.usuario)+': los asesores lo verán en Seguimiento.','err');document.getElementById('usrNuevoCel').focus();return;}
   if(!nuevo.clave){usrMsg('El usuario nuevo necesita una contraseña: usa 🎲 para generar una.','err');return;}
   const m=motivoClaveDebil(nuevo.usuario,nuevo.clave);if(m){usrMsg('Contraseña insegura: '+m+'. Usa 🎲 para generar una segura.','err');return;}
   try{
