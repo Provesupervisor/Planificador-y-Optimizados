@@ -1579,7 +1579,7 @@ body.rol-visualizador #view-armado .run-controls { display:none; }
 }
 #view-armado .desk-head::before{
   inset:0 0 0 auto;width:var(--fw);z-index:-1;
-  background-image:linear-gradient(90deg,#1b1f2466 0,#1b1f2400 22%),linear-gradient(0deg,#0b0d1047 0,#0b0d1000 38%),var(--muelle);
+  background-image:linear-gradient(90deg,#1b1f2466 0,#1b1f2400 22%),linear-gradient(0deg,#0b0d10a8 0,#0b0d1000 42%),var(--muelle);
   background-position:center,center,62% 58%;background-size:100% 100%,100% 100%,cover;background-repeat:no-repeat;
   clip-path:polygon(var(--corte) 0,100% 0,100% 100%,0 100%);
   animation:muelleEntra 1.1s cubic-bezier(.2,.7,.2,1) both
@@ -1595,6 +1595,13 @@ body.rol-visualizador #view-armado .run-controls { display:none; }
 #view-armado .dispatch-location{font-size:11px}
 #view-armado .desk-actions{margin-left:0}
 #view-armado .desk-head h2#planTitulo{font-size:clamp(28px,2.6vw,42px);letter-spacing:-1.4px}
+/* firma del autor, sobre la foto del muelle */
+#view-armado .firma-autor{position:absolute;z-index:1;right:16px;bottom:12px;max-width:calc(var(--fw) - var(--corte) - 30px);
+  font-size:11px;line-height:1.3;font-weight:500;color:#eef1f4;letter-spacing:.15px;text-align:right;
+  text-shadow:0 1px 2px #000a,0 0 10px #0008}
+#view-armado .firma-autor b{font-weight:700;color:#fff}
+#view-armado .firma-autor>span{white-space:nowrap}
+#view-armado .firma-autor i{font-style:normal;color:#ff4d5e;margin:0 2px;font-weight:700}
 
 /* 2) El día de la programación es el título */
 .plan-when{display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;min-width:0}
@@ -1648,6 +1655,8 @@ body.rol-visualizador #view-armado .run-controls { display:none; }
     clip-path:polygon(0 0,100% 0,100% calc(100% - 26px),0 100%)}
   #view-armado .desk-head::after{inset:0 0 auto 0;width:auto;height:calc(var(--alto) + 9px);
     clip-path:polygon(0 calc(100% - 9px),100% calc(100% - 35px),100% calc(100% - 26px),0 100%)}
+  #view-armado .firma-autor{position:static;order:3;max-width:none;text-align:left;font-size:10.5px;color:#aab3bc;text-shadow:none;margin-top:2px}
+  #view-armado .firma-autor b{color:#d9dee3}
   #statsArmado{grid-template-columns:repeat(2,minmax(0,1fr))}
   #statsArmado .stat.uds{grid-column:1/-1}
   #statsArmado .stat:first-child{padding-right:62px}
@@ -1701,7 +1710,7 @@ body.rol-visualizador #view-armado .run-controls { display:none; }
 
 <!-- ============ VISTA ARMADO ============ -->
 <div class="view active" id="view-armado">
-<div class="desk-head no-print"><div class="section-title"><span class="dispatch-location"><i aria-hidden="true"></i> <span id="planKicker">Almacén Huachipa <em>/</em> Lima Este</span></span><div class="plan-when"><h2 id="planTitulo">Programación de rutas</h2><span class="plan-turno" id="planTurno" hidden></span><button type="button" class="plan-elegir solo-editor" id="planElegir" hidden>Elegir fecha</button></div></div><div class="desk-actions">    <div class="tgroup">
+<div class="desk-head no-print"><span class="firma-autor"><span>Elaborado por <b>Walter Malpartida Santiago</b></span> <i>·</i> <span>Supervisor de Distribución y Transporte</span></span><div class="section-title"><span class="dispatch-location"><i aria-hidden="true"></i> <span id="planKicker">Almacén Huachipa <em>/</em> Lima Este</span></span><div class="plan-when"><h2 id="planTitulo">Programación de rutas</h2><span class="plan-turno" id="planTurno" hidden></span><button type="button" class="plan-elegir solo-editor" id="planElegir" hidden>Elegir fecha</button></div></div><div class="desk-actions">    <div class="tgroup">
       <button id="btnGuardar" class="solo-editor"><svg class="ui-icon" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3h13l3 3v15H4zM8 3v6h8V3m-9 18v-8h10v8"/></svg> Guardar programación</button>
       <button class="alt" id="btnHistorial"><svg class="ui-icon" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10a8 8 0 1 1 1 7M3 5v6h6m3-5v6l4 2"/></svg> Historial</button>
 
@@ -3141,7 +3150,7 @@ const NUBE_URL_KEY='prove_nube_url';
    "Configurar servidor" y ese valor manda sobre este. */
 /* Sello de version: sirve para saber, sin adivinar, que archivo esta corriendo
    realmente el navegador (GitHub Pages y el cache del movil suelen servir uno viejo). */
-const APP_VERSION='2026-11-07 · planificador-30';
+const APP_VERSION='2026-11-07 · planificador-31';
 const NUBE_URL_DEFECTO='https://script.google.com/macros/s/AKfycbzPfXZFs9GVEfBfDERzGGzxO8OgoRaMOHIg_QO9jOpMP31BkvENFenAP9rubgh_GPcW4Q/exec';
 const SESION_KEY='prove_sesion';
 let sesion={usuario:'',clave:'',rol:'',nombre:''};
