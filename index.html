@@ -1042,6 +1042,12 @@ button.av-est:hover{outline:2px solid rgba(0,0,0,.15);}
 .tb-x{font-size:10.5px;font-weight:800;color:#5a6b7a;}
 .tb-inc{flex:none;font-size:10.5px;font-weight:800;color:#fff;background:#d97706;border-radius:99px;min-width:18px;height:18px;display:inline-grid;place-items:center;padding:0 5px;line-height:1}
 .tb-tile.con-inc{box-shadow:inset 0 -3px 0 #f2b45a;}
+/* v32: restricción horaria (solo admin) — colores propios, distintos a los de estado */
+.tb-rh{flex:none;display:inline-flex;align-items:center;height:16px;padding:0 5px;border-radius:5px;font:700 10px/1 system-ui,sans-serif;white-space:nowrap;letter-spacing:0}
+.tb-rh.ok{background:#eef0ff;color:#3730a3;border:1px solid #d6d9fb}
+.tb-rh.pend{background:#fff;color:#4338ca;border:1px dashed #a5abf3}
+.tb-rh.tarde{background:#1a1a1a;color:#fff}
+.tb-rh-res{color:#3730a3;font-weight:600}.tb-rh-res b.mal{color:#c0001a}
 .tb-foto{flex:none;font-size:10px;color:#fff;background:#1e4f86;border-radius:99px;min-width:18px;height:18px;display:inline-grid;place-items:center;padding:0 4px;line-height:1}
 .tb-foto.falta{background:#fff;color:#b45309;border:1.5px dashed #d97706}
 .tb-est.foto i{background:#1e4f86!important}
@@ -3150,7 +3156,7 @@ const NUBE_URL_KEY='prove_nube_url';
    "Configurar servidor" y ese valor manda sobre este. */
 /* Sello de version: sirve para saber, sin adivinar, que archivo esta corriendo
    realmente el navegador (GitHub Pages y el cache del movil suelen servir uno viejo). */
-const APP_VERSION='2026-11-07 · planificador-31';
+const APP_VERSION='2026-11-07 · planificador-33';
 const NUBE_URL_DEFECTO='https://script.google.com/macros/s/AKfycbzPfXZFs9GVEfBfDERzGGzxO8OgoRaMOHIg_QO9jOpMP31BkvENFenAP9rubgh_GPcW4Q/exec';
 const SESION_KEY='prove_sesion';
 let sesion={usuario:'',clave:'',rol:'',nombre:''};
@@ -5686,6 +5692,466 @@ if (typeof module !== 'undefined') module.exports = IA;
   const AV_ORDEN=['TERMINADO','ENTREGA PARCIAL','ANULADO','EN PROCESO','EN RUTA'];
   const AV_FINAL={'TERMINADO':1,'ENTREGA PARCIAL':1,'ANULADO':1};
   const AV_ESPERA=15;   // tolerancia de espera en el cliente (min)
+  /* v32: llegadas a tiempo según la restricción horaria de la observación — SOLO para el admin
+     (no se muestra a asesores ni a Seguimiento). El mismo lector que usa Mi Ruta. */
+  /* ---------- v33: restricción horaria escrita en la observación ----------
+     Motor = el mismo que normalizó tus despachos ene–oct 2026 (Análisis de restricciones horarias):
+     1,238 redacciones reales distintas → 100 % igual al Diccionario; 1,466 textos sin horario → 0 falsos.
+     Regla: solo se usan horas que el asesor escribió. Si no hay hora clara, no se inventa:
+     la etiqueta pide revisar la observación y no se evalúa si llegó a tiempo.
+     restriccionDe(texto) devuelve null o:
+       {tipo:'ventana', franjas:[[desde|null,hasta|null],…] (min), desde, hasta, cita, llegar, brk, dudosa}
+       {tipo:'refrigerio', brk:[[a,b]]}            solo dice cuándo NO recibe
+       {tipo:'revisar', etiqueta}                  hora única sin precisar, mañana/tarde sin hora, ilegible
+       {tipo:'pref', etiqueta}                     "lo más temprano", "primer punto" (preferencia, no restricción) */
+  const RH=(function(){
+  'use strict';
+  const PYW = '[\\p{L}\\p{N}_]', PYNW = '[^\\p{L}\\p{N}_]';
+  const PYB = '(?:(?<=' + PYW + ')(?!' + PYW + ')|(?<!' + PYW + ')(?=' + PYW + '))';
+  const _reCache = new Map();
+  function pyx(src) { // traduce \b \w \W
+    let out = '';
+    for (let i = 0; i < src.length; i++) {
+      const c = src[i];
+      if (c === '\\' && i + 1 < src.length) {
+        const n = src[i + 1];
+        if (n === 'b') out += PYB; else if (n === 'w') out += PYW; else if (n === 'W') out += PYNW; else out += c + n;
+        i++;
+      } else out += c;
+    }
+    return out;
+  }
+  function RX(src, g) {
+    const k = src + (g ? '\u0000g' : '');
+    let r = _reCache.get(k);
+    if (!r) { r = new RegExp(pyx(src), g ? 'gu' : 'u'); _reCache.set(k, r); }
+    if (g) r.lastIndex = 0;
+    return r;
+  }
+  const re_search = (p, s) => RX(p).exec(s);
+  const re_test = (p, s) => RX(p).test(s);
+  function re_all(p, s) { const r = RX(p, true), out = []; let m; while ((m = r.exec(s)) !== null) { out.push(m); if (m[0] === '') r.lastIndex++; } return out; }
+  function re_sub(p, rep, s) { const r = RX(p, true); return s.replace(r, typeof rep === 'function' ? (...a) => { const m = a.slice(0, -2); return rep(m); } : rep); }
+  const g = (m, i) => (m[i] === undefined ? null : m[i]);
+  const mStart = m => m.index, mEnd = m => m.index + m[0].length;
+  const pyInt = x => parseInt(x, 10);
+  const replAll = (s, a, b) => (a ? s.split(a).join(b) : s);
+
+  function pyRound(v, n) { // round() de Python: decimal exacto, empates al par
+    if (!isFinite(v)) return v;
+    const s = Math.abs(v).toFixed(100), dot = s.indexOf('.'), rest = s.slice(dot + 1 + n);
+    if (rest[0] === '5' && /^0*$/.test(rest.slice(1))) {
+      const down = Number((v < 0 ? '-' : '') + s.slice(0, dot + 1 + n));
+      const last = n ? +s[dot + n] : +s[dot - 1]; // último dígito conservado
+      if (last % 2 === 0) return down;
+      return Number((down + (v < 0 ? -1 : 1) * Math.pow(10, -n)).toFixed(n));
+    }
+    return Number(v.toFixed(n));
+  }
+  function fmt(v) {
+    if (v === null || v === undefined) return '';
+    let h = Math.trunc(v), x = (v - h) * 60;
+    let m = Math.round(x); if (Math.abs(x - Math.trunc(x) - 0.5) < 1e-12 && Math.trunc(x) % 2 === 0) m = Math.trunc(x); // redondeo bancario como Python
+    if (m === 60) { h += 1; m = 0; }
+    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+  }
+
+  function clean(s0) {
+    let s = String(s0 || '').toUpperCase();
+    s = replAll(s, 'Ñ', 'NN');
+    s = s.normalize('NFKD').replace(/\p{Mn}/gu, '');
+    s = replAll(s, 'NN', 'Ñ');
+    s = re_sub(String.raw`\(\s*NO HAY HORARIOS? DE DESPACHOS?\s*\)?`, ' ', s);
+    s = re_sub(String.raw`NO HAY HORARIOS? DE DESPAC\w*`, ' ', s);
+    s = re_sub(String.raw`\+?\d[\d ]{7,}\d`, ' ', s);
+    s = re_sub(String.raw`\b[A-Z]\d{4,}\b`, ' ', s);
+    s = re_sub(String.raw`\b\d{1,2}/\d{1,2}(/\d{2,4})?\b`, ' ', s);
+    s = re_sub(String.raw`\bFC \d+`, ' ', s);
+    s = re_sub(String.raw`\b(ATES|ANETS|ANTS|ANES)\b`, 'ANTES', s);
+    s = re_sub(String.raw`ANTES\s+D\s*E?\s*LAS?(SD)?\b`, 'ANTES DE LAS', s);
+    s = re_sub(String.raw`ANTES DE LASSD`, 'ANTES DE LAS', s);
+    s = re_sub(String.raw`\bHAST\b`, 'HASTA', s);
+    s = re_sub(String.raw`HASTA A LAS`, 'HASTA LAS', s);
+    s = re_sub(String.raw`\bMAÑAN\b`, 'MAÑANA', s);
+    s = re_sub(String.raw`\bFHRS\b`, 'HRS', s);
+    s = re_sub(String.raw`(\d+)\s*HORAS?\s+(\d{1,2})\s+(?=ANTES)`, m => String(pyInt(m[1]) * 60 + pyInt(m[2])) + ' MIN ', s);
+    s = re_sub(String.raw`\bDE(\d)`, m => 'DE ' + m[1], s);
+    s = re_sub(String.raw`-\s*-`, '-', s);
+    s = re_sub(String.raw`\b(RANGO|RAGO|RANDO|RENGO|RABGI)\b`, 'RANGO', s);
+    s = re_sub(String.raw`(RANGO (?:DE )?\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)\s+Y\s+(?=\d)`, m => m[1] + ' - ', s);
+    s = re_sub(String.raw`(\d)\s*:\s*(\d{2})\s*H\b`, m => String(pyInt(m[1]) * 60 + pyInt(m[2])) + ' MIN', s);
+    s = re_sub(String.raw`\bDESPUES DE(?:\s*LAS?)?\s*(?=\d)`, 'DESDE LAS ', s);
+    s = re_sub(String.raw`DESPUES DEL MEDIO DIA|DEL MEDIO DIA EN ADELANTE`, 'A PARTIR DEL MEDIO DIA', s);
+    s = re_sub(String.raw`\b1ER PUNTO\b`, 'PRIMER PUNTO', s);
+    s = re_sub(String.raw`NO (MUY|TAN)\s+TARDE`, 'TEMPRANO', s);
+    s = replAll(replAll(s, 'MEDIODIA', 'MEDIO DIA'), 'MEDIO-DIA', 'MEDIO DIA');
+    s = re_sub(String.raw`(\d)\s*(AAM|MM|AA)\b`, m => m[1] + 'AM', s);
+    s = re_sub(String.raw`(\d):\s*(AM|PM)`, m => m[1] + ' ' + m[2], s);
+    s = re_sub(String.raw`(\d)\s*A\.\s*M\.?`, m => m[1] + 'AM', s);
+    s = re_sub(String.raw`(\d)\s*P\.\s*M\.?`, m => m[1] + 'PM', s);
+    s = re_sub(String.raw`\s+`, ' ', s);
+    return s.trim();
+  }
+
+  const T = String.raw`(\d{1,2})(?:\s*[:.]\s*(\d{2}))?\s*(AM|PM|HRS|HR|H)?`;
+  const BRK_KW = String.raw`\bRE\w{0,4}GERIO|ALMUERZO|NO SE PUEDE REALIZAR|NO ATIENDE`;
+  const NOT_AFTER0 = String.raw`(?!\s*(?:HORAS?|HRS?\b|H\b|MIN|MINUTOS|UND|UNID|SILLAS|PISO|TO\b|DO\b|ER\b|COPIAS|CAJAS|DIAS|BULTOS?|PAQUETES?|PIEZAS?|MESAS?|JUEGOS?|PARES?|KG|METROS?|TN\b))`;
+  const NOT_AFTER = NOT_AFTER0.slice(0, -2) + String.raw`|M\b|MTS|MT\b|CM|MM\b))`;
+  const AVISO = String.raw`(LLAMAR|LLAMA|AVISAR|ESCRIBIR|COMUNICARSE|LLAMADA)[^/]*?(\d+|UNA|UN|DOS|MEDIA)\s*(HORAS?|HROAS?|HRS?|H|MIN|MINUTOS)\b(?:\s*Y\s*(\d+)\s*MIN)?[^/]*?ANTES`;
+  const WORDNUM = { UNA: 1, UN: 1, DOS: 2, MEDIA: 0.5 };
+  const RNG3 = T + String.raw`\s*(?:-|–|A|AL|HASTA)\s*(?:LAS\s+)?` + T;
+  const OPEN_L = -1.0, OPEN_R = 99.0;
+
+  function parse_aviso(s) {
+    const m = re_search(AVISO, s);
+    if (m) {
+      const n0 = m[2]; let n = /^\d+$/.test(n0) ? pyInt(n0) : (n0 in WORDNUM ? WORDNUM[n0] : null);
+      const unit = m[3];
+      let mins = unit.startsWith('H') ? n * 60 : n;
+      if (m[4]) mins += pyInt(m[4]);
+      if (n === 0.5) mins = 30;
+      return Math.trunc(mins);
+    }
+    if (re_test(String.raw`LLAMAR (AL|CUANDO) ESTE?N? CERCA|LLAMAR AL ESTAR CERCA|AL ESTAR CERCA`, s)) return 'CERCA';
+    if (re_test(String.raw`\b(LLAMAR|LLAMA|AVISAR|ESCRIBIR)\b`, s) && !s.includes('NO LLAMAR')) return 'SIN TIEMPO';
+    return null;
+  }
+
+  function pre(s) {
+    s = re_sub(String.raw`\bHATA\b`, 'HASTA', s);
+    s = re_sub(String.raw`\b(\d{1,2})[.:]?(\d{2})\s*(AM|PM)\b`, m => pyInt(m[2]) < 60 ? m[1] + ':' + m[2] + ' ' + m[3] : m[0], s);
+    s = re_sub(String.raw`\bA(\d)`, m => 'A ' + m[1], s);
+    s = re_sub(String.raw`\bRANGO AM\b|\bTURNO AM\b`, 'RANGO DE LA MAÑANA', s);
+    s = re_sub(String.raw`\bRANGO PM\b|\bTURNO PM\b`, 'RANGO DE LA TARDE', s);
+    return s;
+  }
+
+  function lit(h0, m0, suf0) {
+    const h = pyInt(h0), m = m0 ? pyInt(m0) : 0;
+    if (m > 59 || h > 23) return [null, 'bad'];
+    let suf = (suf0 || '').trim();
+    if (suf === 'H' || suf === 'HR' || suf === 'HRS') suf = '';
+    if (suf === 'PM') { const v = h < 12 ? h + 12 : h; return [v + m / 60, null]; }
+    if (suf === 'AM') { if (h === 12) return [12 + m / 60, 'am12']; return [h + m / 60, null]; }
+    if (1 <= h && h <= 6) return [h + 12 + m / 60, 'pm'];
+    if (h === 7) return [7 + m / 60, 'ambig7'];
+    return [h + m / 60, null];
+  }
+
+  function resolve_range(h1, m1, s1, h2, m2, s2) {
+    const strip = x => { const y = replAll(replAll(replAll(x || '', 'HRS', ''), 'HR', ''), 'H', ''); return y || null; };
+    s1 = strip(s1); s2 = strip(s2);
+    const flags = [];
+    let [b, fb] = lit(h2, m2, s2);
+    if (b === null) return null;
+    if (fb === 'am12') flags.push('am12');
+    let a, fa;
+    if (s1) { [a, fa] = lit(h1, m1, s1); if (fa === 'am12') flags.push('am12'); }
+    else {
+      const h1i = pyInt(h1), mm = m1 ? pyInt(m1) : 0, a_lit = h1i + mm / 60;
+      if (s2 === 'PM' && h1i < 12 && h1i + 12 + mm / 60 < b && h1i <= pyInt(h2)) a = a_lit + 12;
+      else if (s2 === 'PM' && a_lit < b && a_lit >= 6) a = a_lit;
+      else if (a_lit >= 7 && (a_lit < b || !s2)) a = a_lit;
+      else if (1 <= h1i && h1i <= 6) { a = a_lit + 12; flags.push('pm'); }
+      else a = a_lit;
+      fa = null;
+    }
+    if (!s2 && b <= a) {
+      if (pyInt(h2) < 12 && b + 12 > a) { b = b + 12; flags.push('pm'); }
+      else return null;
+    } else if (!s2 && fb === 'pm') flags.push('pm');
+    if (a === null || a === undefined || a >= b || a < 6 || b > 23) return null;
+    return [a, b, flags];
+  }
+
+  const NOTE = { pm: 'hora sin AM/PM de 1 a 6 leída como tarde (ej. 3 → 15:00)', am12: '"12 AM" leído como mediodía (12:00)',
+    ambig7: '"7" sin AM/PM: puede ser 07:00 o 19:00', ilegible: 'número de hora ilegible en el texto',
+    unica: 'hora única: no dice si es cita, inicio o límite', bad: 'hora inválida' };
+
+  function parse3(obs) {
+    let raw = String(obs || '');
+    const typo_suf = re_test(String.raw`\d\s*´\s*M\b`, raw.toUpperCase());
+    raw = re_sub(String.raw`(\d)\s*´\s*[Mm]\b`, m => m[1], raw);
+    const s = pre(clean(raw));
+    const out = { items: [], brk: [], pref: [], notes: [], conf: 'Alta', aviso: null, generic: false, txt: s, used: [] };
+    if (!s) return out;
+    const up = raw.toUpperCase();
+    if (typo_suf) out.notes.push('sufijo de hora ilegible ("´M"): se leyó la hora sin AM/PM');
+    if (re_test(String.raw`\d\s*(AAM|MM|AA)\b`, up)) { out.notes.push('sufijo de hora mal escrito leído como AM'); out.conf = 'Media'; }
+    out.aviso = parse_aviso(s);
+    let s2 = re_sub(AVISO, ' ', s);
+    s2 = re_sub(String.raw`(ENVIAR|ERNVIAR|MANDAR)[^/]*?DATOS[^/]*`, ' ', s2);
+    s2 = re_sub(String.raw`DATOS[^/]*?(\d+\s*HRS?|UN DIA)\s*ANTES[^/]*`, ' ', s2);
+    s2 = re_sub(String.raw`TIEMPO DE DESCARGA[^/]*`, ' ', s2);
+    s2 = re_sub(String.raw`REVISAR[^/]*?ANTES DE DESPACHAR[^/]*`, ' ', s2);
+    s2 = re_sub(String.raw`TOLERANCIA DE \d+ MIN`, ' ', s2);
+    s2 = re_sub(String.raw`LLEGAR (MEDIA HORA|UNOS MIN) ANTES`, ' ', s2);
+    s2 = re_sub(String.raw`USO DE ASCENSOR A PARTIR DE[^/]*`, ' ', s2);
+    let flags = [];
+    const add = (t, a = null, b = null, q = null, src = '') => out.items.push({ t, a, b, q, src: src.trim() });
+    const pushF = f => { if (f) flags.push(f); };
+    const segs = s2.split(/\/\/+|\/|;|\|/).map(x => x.trim()).filter(x => x);
+    const RANGE_RE = String.raw`(?:(RANGO|HORARIO|HORARO|ENTRE|DE|DESDE|Y|O|RECEPCION|ATENCION|DISPONIBLE|ENTREGA|TURNO|ENVIAR|RECIBE|LLEGAR ANTES DE LAS|A PARTIR DE LAS)\s+(?:DE\s+|LAS\s+|ENTREGA\s+DE\s+|DE\s+LAS\s+|UNICO\s+DE\s+DESCARGA\s+)?)?` + T + String.raw`\s*(?:-|–|A|AL|HASTA)\s*(?:LAS\s+)?` + T + NOT_AFTER;
+    for (let seg of segs) {
+      const k = re_search(BRK_KW, seg);
+      if (k) {
+        const ks = k.index;
+        const after = re_all(RNG3, seg.slice(ks)), before = re_all(RNG3, seg.slice(0, ks));
+        let m = null, off = 0;
+        if (after.length) { m = after[0]; off = ks; } else if (before.length) m = before[before.length - 1];
+        if (m) {
+          const r = resolve_range(g(m, 1), g(m, 2), g(m, 3), g(m, 4), g(m, 5), g(m, 6));
+          if (r) {
+            out.brk.push([r[0], r[1]]); flags = flags.concat(r[2]); out.used.push(m[0]);
+            seg = seg.slice(0, off + mStart(m)) + ' ' + seg.slice(off + mEnd(m));
+          }
+        }
+        seg = re_sub(BRK_KW, ' ', seg);
+        seg = re_sub(String.raw`\bES (HORARIO DE )?\b`, ' ', seg);
+      }
+      let m = re_search(String.raw`HASTA\s*(?:LAS\s*)?` + T + String.raw`\s+O\s+(?:DESDE\s+|A PARTIR DE\s+)?(?:LAS\s+)?` + T, seg);
+      if (m) {
+        const [v1, f1] = lit(m[1], g(m, 2), g(m, 3)), [v2, f2] = lit(m[4], g(m, 5), g(m, 6));
+        if (v1 && v2) { add('limite', null, v1, null, m[0]); add('desde', v2, null, null, m[0]); pushF(f1); pushF(f2); continue; }
+      }
+      let found = false, last_end = -1;
+      for (const mm of re_all(RANGE_RE, seg)) {
+        const kw = g(mm, 1);
+        const h1 = g(mm, 2), m1 = g(mm, 3), s1 = g(mm, 4), h2 = g(mm, 5), m2 = g(mm, 6), s2_ = g(mm, 7);
+        if (!kw && !(s1 || s2_ || m1 || m2)) {
+          if (!RX(String.raw`^\s*(Y|-|–)\s*(DE\s+)?\d`).test(seg.slice(mEnd(mm))) && !RX(String.raw`[-–]\s*$`).test(seg.slice(0, mStart(mm))) && mStart(mm) !== last_end) continue;
+        }
+        const nxt = seg.slice(mEnd(mm), mEnd(mm) + 1);
+        const r = resolve_range(h1, m1, s1, h2, m2, s2_);
+        if (!r) continue;
+        add('rango', r[0], r[1], null, mm[0]); flags = flags.concat(r[2]); last_end = mEnd(mm);
+        if (/^\p{Nd}$/u.test(nxt)) flags.push('ilegible');
+        found = true;
+      }
+      if (found) continue;
+      m = re_search(String.raw`(CIERRAN? A LAS|ANTES DE(?:L)?\s*(?:LA|LAS)?|HASTA\s*(?:LAS|LA)?|MAXIMO(?:\s*HASTA)?\s*(?:LAS)?|MAX(?:\s*HASTA)?\s*(?:LAS)?|TIEMPO MAX(?:IMO)?|LIMITE)\s*` + T + NOT_AFTER, seg);
+      if (m && !re_test(String.raw`ANTES DE (DESPACHAR|LLEGAR|LA ENTREGA)`, seg.slice(mStart(m), mStart(m) + 30))) {
+        const [v, f] = lit(m[2], g(m, 3), g(m, 4));
+        if (v !== null) {
+          const q = re_test(String.raw`(POR|EN) LA TARDE`, seg) ? 'TARDE' : re_test(String.raw`(POR|EN) LA MAÑANA`, seg) ? 'MAÑANA' : null;
+          add('limite', null, v, q, m[0]); pushF(f); continue;
+        }
+      }
+      if (re_test(String.raw`MAXIMO MEDIO DIA|HASTA EL MEDIO DIA|ANTES DEL? MEDIO DIA|\bAL MEDIO DIA\b|12 MEDIO DIA`, seg) && !re_test(String.raw`PARTIR|DIA ANTES AL MEDIO DIA`, seg)) { add('limite', null, 12.0, null, 'MEDIO DIA'); continue; }
+      m = re_search(String.raw`A LAS\s*` + T + String.raw`.{0,12}MAXIMO`, seg);
+      if (m) { const [v, f] = lit(m[1], g(m, 2), g(m, 3)); if (v !== null) { add('limite', null, v, null, m[0]); pushF(f); continue; } }
+      m = re_search(T + String.raw`\s*[.,]?\s*EN ADELANTE`, seg);
+      if (m) { const [v, f] = lit(m[1], g(m, 2), g(m, 3)); if (v !== null) { add('desde', v, null, null, m[0]); pushF(f); continue; } }
+      m = re_search(String.raw`(A PARTIR DE(?:L)?(?:\s*LAS?)?|A PARTR DE(?:\s*LAS)?|APARTIR DE(?:\s*LAS)?|DESDE(?:\s*DE)?(?:\s*LAS)?|ABREN DESDE LAS)\s*` + T + NOT_AFTER, seg);
+      if (m) { const [v, f] = lit(m[2], g(m, 3), g(m, 4)); if (v !== null) { add('desde', v, null, null, m[0]); pushF(f); continue; } }
+      if (re_test(String.raw`A PARTIR DEL MEDIO DIA`, seg)) { add('desde', 12.0, null, null, 'MEDIO DIA'); continue; }
+      m = re_search(String.raw`(CITAS?(?: A LAS)?|PUNTUALMENTE A LAS|ESTAR A LAS|PARA LAS|INGRESO|HORARIO UNI(?:C)?O|\bA LAS)\s*` + T + NOT_AFTER, seg);
+      if (m) { const [v, f] = lit(m[2], g(m, 3), g(m, 4)); if (v !== null) { add('cita', v, v, null, m[0]); pushF(f); continue; } }
+      m = re_search(String.raw`(HORARIO(?:\s*(?:APROX|PERMITIDO|DE DESCARGA|DE RECEPCION|DE ENTREGA))?\W*|SOO RECIBE|SOLO RECIBE|RECIBE|RANGO)\s*` + T + NOT_AFTER, seg);
+      if (m && (g(m, 4) || g(m, 3) || re_test('COORDINADO', seg))) {
+        const [v, f] = lit(m[2], g(m, 3), g(m, 4));
+        if (v !== null) {
+          if (re_test('COORDINADO|APROX', seg)) { add('cita', v, v, null, m[0]); pushF(f); out.notes.push('hora coordinada/aproximada tomada como cita'); }
+          else { add('unica', v, v, null, m[0]); flags.push('unica'); }
+          continue;
+        }
+      }
+      m = re_search(T + String.raw`\s*INDICA EL CLIENTE`, seg);
+      if (m) { const [v] = lit(m[1], g(m, 2), g(m, 3)); if (v !== null) { add('llegada', v, v, null, m[0]); continue; } }
+      if (re_test(String.raw`(POR|EN|DE|RANGO|TURNO|TRANSCURSO DE) LA MAÑANA|RANGO MAÑANA|TURNO MAÑANA`, seg) && !re_test(String.raw`\bNO (TIENEN|HAY|RECIBE)`, seg)) { add('franja', null, null, 'MAÑANA', 'MAÑANA'); continue; }
+      if (re_test(String.raw`(POR|EN|DE|RANGO|TURNO) LA TARDE|TURNO TARDE`, seg)) { add('franja', null, null, 'TARDE', 'TARDE'); continue; }
+      if (re_test(String.raw`(ARMADO|EMBALADO)( Y \w+)? TEMPRANO`, seg)) continue;
+      if (re_test(String.raw`PRIMER PUNTO|PRIMEROS PUNTOS`, seg)) { out.pref.push('PRIMER PUNTO'); continue; }
+      if (re_test(String.raw`\b(1ER|PRIMER) (TURNO|TRUNO)`, seg)) { out.pref.push('1ER TURNO'); continue; }
+      if (re_test(String.raw`TEMPRAN|PRIMERA HORA|LO ANTES POSIBLE|LO MAS PRONTO`, seg)) { out.pref.push('LO MÁS TEMPRANO'); continue; }
+      if (re_test(String.raw`CLIENTE CON HORARIO|RESPETAR HORARIO|CON HORARIO|\bRANGO\b|\bHORARIO\b`, seg) && !re_test('NO HAY MAS RANGO', seg)) out.generic = true;
+    }
+    let resid = s2;
+    for (const x of out.items) if (x.src) resid = replAll(resid, x.src, ' ');
+    for (const u of out.used) resid = replAll(resid, u, ' ');
+    const known = new Set();
+    for (const x of out.items) for (const v of [x.a, x.b]) if (v !== null) known.add(pyRound(v, 2));
+    for (const b_ of out.brk) for (const v of b_) known.add(pyRound(v, 2));
+    let lefts = re_all(String.raw`\b(\d{1,2})(?::(\d{2}))?\s*(AM|PM)\b` + NOT_AFTER, resid);
+    lefts = lefts.filter(mm => { const v = lit(mm[1], g(mm, 2), g(mm, 3))[0]; return !known.has(pyRound(v || -9, 2)); });
+    if ((out.items.length || out.brk.length) && lefts.length) { flags.push('resto'); out.notes.push(`hora "${lefts[0][0]}" en el texto no quedó interpretada`); }
+    const seen = new Set();
+    for (const f of flags) { if (seen.has(f)) continue; seen.add(f); if (f === 'resto') continue; out.notes.push(f in NOTE ? NOTE[f] : f); }
+    const fs = new Set(flags);
+    if (['ambig7', 'ilegible', 'unica', 'bad', 'resto'].some(f => fs.has(f)) || (out.generic && !out.items.length && !out.brk.length)) out.conf = 'Revisar';
+    else if (['pm', 'am12'].some(f => fs.has(f)) && out.conf !== 'Revisar') out.conf = 'Media';
+    if (out.generic && !out.items.length && !out.brk.length) out.notes.push('menciona un horario pero no se puede leer ninguna hora');
+    return out;
+  }
+
+  // orden de tuplas como Python
+  const cmpT = (x, y) => (x[0] - y[0]) || (x[1] - y[1]);
+  function uniqSorted(arr) { const k = new Map(); arr.forEach(t => k.set(t[0] + '|' + t[1], t)); return [...k.values()].sort(cmpT); }
+
+  function combine(p) {
+    const it = p.items;
+    let rng = it.filter(x => ['rango', 'cita', 'unica'].includes(x.t)).map(x => [x.a, x.b]);
+    const lim = it.filter(x => x.t === 'limite').map(x => x.b);
+    const des = it.filter(x => x.t === 'desde').map(x => x.a);
+    const fr = it.filter(x => x.t === 'franja').map(x => x.q);
+    let q = (it.find(x => x.t === 'limite' && x.q) || {}).q || null;
+    if (q === null && fr.length && lim.length && !rng.length) q = fr[0];
+    const citas_ = it.filter(x => x.t === 'cita').map(x => x.a);
+    const rr_ = it.filter(x => x.t === 'rango').map(x => [x.a, x.b]);
+    if (citas_.length && rr_.length && citas_.some(c => rr_.some(([a, b]) => a <= c && c <= b))) {
+      p._desc = rr_.filter(([a, b]) => citas_.some(c => a <= c && c <= b))[0];
+      rng = citas_.map(c => [c, c]);
+    }
+    const lleg = it.filter(x => x.t === 'llegada').map(x => x.a);
+    if (lleg.length && rng.length && rng.every(([a, b]) => a === b)) { const mn = Math.min(...lleg); rng = [[mn, mn]]; }
+    let wins = [];
+    if (rng.length) {
+      wins = uniqSorted(rng);
+      for (const b of lim) { const clipped = wins.filter(([a]) => a <= b).map(([a, e]) => [a, Math.min(e, b)]); wins = clipped.length ? clipped : wins.concat([[OPEN_L, b]]); }
+      for (const a of des) {
+        if (wins.every(([, e]) => e <= a)) wins.push([a, OPEN_R]);
+        else { const w2 = wins.filter(([, e]) => e >= a).map(([x, e]) => [Math.max(x, a), e]); wins = w2.length ? w2 : wins; }
+      }
+    } else if (lim.length && des.length) { const b = Math.min(...lim), a = Math.max(...des); wins = a < b ? [[a, b]] : [[OPEN_L, b], [a, OPEN_R]]; }
+    else if (lim.length) wins = [[OPEN_L, Math.min(...lim)]];
+    else if (des.length) wins = [[Math.max(...des), OPEN_R]];
+    let eff = [];
+    for (const [a, b] of wins) {
+      let segs = [[a, b]];
+      for (const [x, y] of p.brk) {
+        const ns = [];
+        for (const [u, v] of segs) { if (y <= u || x >= v || u === v) ns.push([u, v]); else { if (u < x) ns.push([u, x]); if (y < v) ns.push([y, v]); } }
+        segs = ns;
+      }
+      eff = eff.concat(segs);
+    }
+    if (!wins.length && p.brk.length) eff = p.brk.slice(0, 1).map(([x]) => [OPEN_L, x]).concat([[p.brk[0][1], OPEN_R]]);
+    return [wins, eff, fr, q];
+  }
+
+  function describe(p) {
+    const [wins, eff, fr, q] = combine(p);
+    const types = new Set(p.items.map(x => x.t));
+    const brk = p.brk;
+    if (!p.items.length && !brk.length) {
+      if (p.generic) return { tipo: 'Horario no legible', norm: 'HORARIO SIN HORA LEGIBLE', wins: [], ini: null, fin: null, amp: null };
+      if (p.pref.length) {
+        const order = ['LO MÁS TEMPRANO', 'PRIMER PUNTO', '1ER TURNO'];
+        return { tipo: 'Preferencia sin hora', norm: order.filter(o => p.pref.includes(o)).join(' / ') + ' (sin hora)', wins: [], ini: null, fin: null, amp: null };
+      }
+      return null;
+    }
+    const parts = [];
+    for (const [a, b] of wins) {
+      if (a === OPEN_L && b === OPEN_R) continue;
+      if (a === OPEN_L) parts.push((q ? q + ' · ' : '') + 'ANTES DE ' + fmt(b));
+      else if (b === OPEN_R) parts.push('DESDE ' + fmt(a));
+      else if (a === b) {
+        let pre_ = types.has('unica') && !types.has('cita') ? 'HORA' : 'CITA';
+        const citas = p.items.filter(x => x.t === 'cita').map(x => x.a);
+        let extra = '';
+        if (types.has('llegada') && citas.length && Math.min(...citas) !== a) { pre_ = 'LLEGAR'; extra = ` (cita ${fmt(Math.min(...citas))})`; }
+        if (p._desc && pre_ === 'CITA') extra = ` (descarga ${fmt(p._desc[0])}–${fmt(p._desc[1])})`;
+        parts.push(`${pre_} ${fmt(a)}` + (pre_ === 'HORA' ? ' (sin precisar)' : extra));
+      } else parts.push(`${fmt(a)}–${fmt(b)}`);
+    }
+    if (!parts.length && fr.length) parts.push([...new Set(fr)].join(' / ') + ' (sin hora)');
+    let norm = parts.join(' / ');
+    if (brk.length) { const nb = 'NO RECIBE ' + brk.map(([x, y]) => `${fmt(x)}–${fmt(y)}`).join(', '); norm = norm ? `${norm} · ${nb}` : nb; }
+    let tipo;
+    if (types.has('cita') && wins.length === 1 && wins[0][0] === wins[0][1]) tipo = 'Cita / hora exacta';
+    else if (types.has('unica') && wins.length === 1 && wins[0][0] === wins[0][1]) tipo = 'Hora única sin precisar';
+    else if ((wins.length && wins.some(([a, b]) => a !== OPEN_L && b !== OPEN_R)) || wins.length > 1) tipo = 'Rango horario';
+    else if (wins.length && wins[0][0] === OPEN_L) tipo = 'Hora límite (antes de)';
+    else if (wins.length && wins[0][1] === OPEN_R) tipo = 'A partir de (desde)';
+    else if (fr.length) tipo = 'Franja sin hora (mañana/tarde)';
+    else if (brk.length) tipo = 'Solo pausa de refrigerio';
+    else tipo = 'Horario no legible';
+    const starts = wins.map(w => w[0]), ends = wins.map(w => w[1]);
+    const ini = wins.length && !starts.includes(OPEN_L) ? Math.min(...starts) : null;
+    const fin = wins.length && !ends.includes(OPEN_R) ? Math.max(...ends) : null;
+    let amp = null;
+    if (wins.length && ini !== null && fin !== null) amp = pyRound(eff.reduce((s, [a, b]) => s + (b - a), 0), 2);
+    return { tipo, norm, wins: wins.length ? eff : (brk.length ? eff : []), ini, fin, amp };
+  }
+
+  /* ---- ajustes para las apps (no cambian ningún texto del histórico) ---- */
+  function ajustar(s){
+    s=String(s||'').toUpperCase().replace(/Ñ/g,'NN').normalize('NFD').replace(/\p{Mn}/gu,'').replace(/NN/g,'Ñ');
+    /* "no recibe después de las 4" = hasta las 16:00 · "no recibe antes de las 9" = desde las 09:00 */
+    s=s.replace(/\bNO\s+(?:SE\s+)?(?:RECIBEN?|ATIENDEN?|ENTREGAR)\b([^/;|]{0,25}?)\b(DESPUES\s+DE(?:L)?|A\s+PARTIR\s+DE(?:L)?|DESDE)\s*(?:LAS?\s+)?(?=\d|MEDIO)/g,(m,x)=>'ENTREGAR'+x+' HASTA LAS ');
+    s=s.replace(/\bNO\s+(?:SE\s+)?(?:RECIBEN?|ATIENDEN?|ENTREGAR)\b([^/;|]{0,25}?)\bANTES\s+DE(?:L)?\s*(?:LAS?\s+)?(?=\d|MEDIO)/g,(m,x)=>'ENTREGAR'+x+' DESDE LAS ');
+    /* "no recibe de 12 a 1" = refrigerio, no ventana de entrega */
+    s=s.replace(/\bNO\s+(?:SE\s+)?RECIBEN?\s+(?=(?:DE|ENTRE)\s+(?:LAS?\s+)?\d)/g,'NO ATIENDE ');
+    /* cantidades no son horas: "de 12 a 15 unidades", "2 a 3 cajas" */
+    s=s.replace(/\b\d{1,3}\s*(?:A|-|Y|O)\s*\d{1,3}\s*(?=(?:HORAS|MINUTOS|DIAS|UNIDADES|UNID|UND|UDS|CAJAS?|BULTOS?|SILLAS?|PIEZAS?|PAQUETES?|MESAS?|JUEGOS?|PARES|KG|KILOS?|METROS?|ROLLOS?|PLANCHAS?|DOCENAS?|ITEMS?|PRODUCTOS?)\b)/g,' ');
+    /* "antes 10am", "antes las 10" (sin "de") · "hasta medio día" */
+    s=s.replace(/\bANTES\s+(?:LAS?\s+)?(?=\d)/g,'ANTES DE LAS ');
+    s=s.replace(/\bHASTA\s+(?:EL\s+)?MEDIO\s*-?\s*DIA\b/g,'HASTA EL MEDIO DIA');
+    /* "12 m" = mediodía */
+    s=s.replace(/\b(A|HASTA|LAS|DE|ANTES DE)\s+12\s*M\b(?!TS|T\b|ETRO)/g,'$1 12:00');
+    return s;
+  }
+  const TU=String.raw`(\d{1,2})(?:\s*[:.]\s*(\d{2}))?\s*(AM|PM)?`;
+  const _c=new Map();
+  const mn=v=>v==null||v===OPEN_L||v===OPEN_R?null:Math.round(v*60);
+  const ORDEN_PREF={'LO MÁS TEMPRANO':'lo más temprano','PRIMER PUNTO':'primer punto de la ruta','1ER TURNO':'salir en 1er turno'};
+  function leer(texto){
+    const s=ajustar(texto);
+    if(!s.trim())return null;
+    const p=parse3(s),d=describe(p);
+    if(!d){
+      /* "ENTREGAR 10AM", "entrega 2 pm": una hora sin decir si es cita o límite → revisar */
+      const m=RX(String.raw`\b(ENTREG\w*|DESPACH\w*|LLEGA\w*)\b[^/;|]{0,20}?\b`+TU+NOT_AFTER).exec(clean(s));
+      if(m&&(m[4]||m[3])){const v=lit(m[2],m[3],m[4])[0];if(v!=null&&v>=6&&v<=21)return {tipo:'revisar',etiqueta:'Hora '+fmt(v)+' (sin precisar)'};}
+      return null;
+    }
+    const brk=p.brk.map(([a,b])=>[mn(a),mn(b)]);
+    if(d.tipo==='Preferencia sin hora')return {tipo:'pref',etiqueta:p.pref.map(x=>ORDEN_PREF[x]||x.toLowerCase()).filter((x,i,a)=>a.indexOf(x)===i).join(' · ')};
+    if(d.tipo==='Horario no legible')return {tipo:'revisar',etiqueta:'Horario sin hora clara'};
+    if(d.tipo==='Hora única sin precisar'){const w=d.wins[0];return {tipo:'revisar',etiqueta:'Hora '+fmt(w[0])+' (sin precisar)',brk};}
+    if(d.tipo==='Franja sin hora (mañana/tarde)'){const [,, fr]=combine(p);return {tipo:'revisar',etiqueta:[...new Set(fr)].map(q=>q==='MAÑANA'?'Por la mañana':'Por la tarde').join(' / ')+' (sin hora)',brk};}
+    if(d.tipo==='Solo pausa de refrigerio')return {tipo:'refrigerio',brk};
+    const [wins]=combine(p);
+    let fr=(d.wins.length?d.wins:wins).map(([a,b])=>[mn(a),mn(b)]).filter(([a,b])=>a==null||b==null||b>=a);
+    if(!fr.length)return null;
+    const r={tipo:'ventana',franjas:fr,desde:fr[0][0],hasta:fr[fr.length-1][1],brk,dudosa:p.conf==='Revisar',norm:d.norm};
+    if(d.tipo==='Cita / hora exacta'||/^(CITA|LLEGAR) /.test(d.norm)){
+      r.hasta=mn(wins[0][0]);r.desde=null;r.franjas=[[null,r.hasta]];r.cita=r.hasta;
+      const c=/\(cita (\d\d):(\d\d)\)/.exec(d.norm);if(/^LLEGAR/.test(d.norm)&&c){r.llegar=r.hasta;r.cita=+c[1]*60+ +c[2];}
+    }
+    return r;
+  }
+  function restriccionDe(texto){const k=String(texto||'');if(_c.has(k))return _c.get(k);let v=null;try{v=leer(k);}catch(e){v=null;}if(_c.size>3000)_c.clear();_c.set(k,v);return v;}
+  /* textos de varias facturas de una misma parada: cada uno es un tramo aparte */
+  restriccionDe.unir=obs=>[...new Set(obs.map(x=>String(x||'').trim()).filter(Boolean))].join(' // ');
+  return {restriccionDe,parse3,describe};
+  })();
+  const restriccionDe=RH.restriccionDe;
+
+  let rhCuenta={ok:0,tarde:0,pend:0};
+  const mmTxt=x=>String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');
+  /* v33: solo horarios con hora escrita y legible; preferencias, "en la mañana" u horas dudosas no se juzgan */
+  function rhParada(s,lleg){
+    if(!esAdmin())return '';
+    const r=restriccionDe(restriccionDe.unir(s.peds.map(p=>p.OBSERVACION)));
+    if(!r||r.tipo!=='ventana'||r.dudosa)return '';
+    const F=r.franjas,lim=r.hasta;
+    const txt=r.llegar!=null?'llegar '+mmTxt(r.llegar):r.cita!=null?'cita '+mmTxt(r.cita)
+      :F.map(([a,b])=>a==null?'≤'+mmTxt(b):b==null?'≥'+mmTxt(a):mmTxt(a)+'–'+mmTxt(b)).join(' / ');
+    const ll=lleg?(()=>{const m=/(\d{2}):(\d{2})/.exec(String(lleg).slice(11));return m?(+m[1])*60+(+m[2]):null;})():null;
+    const dentro=x=>F.some(([a,b])=>(a==null||x>=a)&&(b==null||x<=b));
+    let cls,et,tip;
+    if(ll!=null){
+      if(lim!=null&&ll>lim){cls='tarde';et='+'+(ll-lim)+'′';tip='llegó '+mmTxt(ll)+', '+(ll-lim)+' min tarde';rhCuenta.tarde++;}
+      else{cls='ok';et='✓';tip='llegó '+mmTxt(ll)+(r.desde!=null&&ll<r.desde?', antes de que abra':!dentro(ll)?', en la pausa del cliente':', a tiempo');rhCuenta.ok++;}
+    }else{
+      const hoy=new Date(Date.now()-5*3600e3),ahora=hoy.getUTCHours()*60+hoy.getUTCMinutes(),esHoy=String(avProg).slice(0,10)===hoy.toISOString().slice(0,10);
+      if(esHoy&&lim!=null&&ahora>lim){cls='tarde';et='!';tip='aún no llega y ya pasó la hora límite';rhCuenta.tarde++;}
+      else{cls='pend';et='';tip='aún no llega';rhCuenta.pend++;}
+    }
+    return `<span class="tb-rh ${cls}" title="${escAttr('Restricción horaria '+txt+' · '+tip+' (solo lo ves tú)')}">⏱${esc(txt)}${et?' '+et:''}</span>`;
+  }
   let avEstados={}, avProg='', avUlt=0, avErr='', avCargando=false, avAbiertas=new Set(), avEdit=null, avInc=[];
   /* piloto de fotos (Apps Script v13.2): qué placas usan la foto de la guía. null = servidor anterior (todas) */
   let avFotos=null;
@@ -6013,7 +6479,7 @@ if (typeof module !== 'undefined') module.exports = IA;
     const N=Math.min(maxP,24);
     let html=`<div class="tb-board" id="tbBoard" style="--n:${N}">`;
     html+=`<div class="tb-row tb-head" aria-hidden="true"><div class="tb-cab">Camión</div>${Array.from({length:N},(_,i)=>`<div class="tb-col">${i+1}°</div>`).join('')}</div>`;
-    let coinc=0;
+    let coinc=0;rhCuenta={ok:0,tarde:0,pend:0};
     rows.forEach(C=>{
       const u=C.u;
       const tiles=C.paradas.slice(0,N).map((s,i)=>{
@@ -6043,7 +6509,7 @@ if (typeof module !== 'undefined') module.exports = IA;
     }
     html+=`</div>`;
     const pie=filtro?`<div class="tb-pie">${coinc} factura(s) coinciden con el filtro · lo demás queda atenuado para no perder el orden</div>`
-      :`<div class="tb-pie">Toca un cliente para ver sus facturas · la columna es el orden de visita del chofer (o el programado si aún no lo ordena)</div>`;
+      :`<div class="tb-pie">${esAdmin()&&(rhCuenta.ok+rhCuenta.tarde+rhCuenta.pend)?`<span class="tb-rh-res">⏱ Restricciones horarias: <b>${rhCuenta.ok}</b> a tiempo · <b class="${rhCuenta.tarde?'mal':''}">${rhCuenta.tarde}</b> tarde · <b>${rhCuenta.pend}</b> por llegar</span> · `:''}Toca un cliente para ver sus facturas · la columna es el orden de visita del chofer (o el programado si aún no lo ordena)</div>`;
     return html+pie;
   }
   function mosaico(C,s,i,ok){
@@ -6057,7 +6523,7 @@ if (typeof module !== 'undefined') module.exports = IA;
     const tip=tit(p0.CLIENTES)+' · '+tit(p0.DISTRITO)+' · '+tit(p0.ZONA||'')+'\n'+(s.ord?'Visita '+s.ord:'Sin orden del chofer')+' · prog. '+s.n+'\n'+s.filas.map(f=>(f.p.FACTURA||'sin factura')+' — '+f.est).join('\n');
     const conInc=incDeFilas(s.filas).length>0;
     return `<button class="tb-tile ${AV_EST[s.est].cls}${esSig?' sig':''}${ok?'':' dim'}${conInc?' con-inc':''}" data-tbtile="${C.u.id}|${i}" title="${escAttr(tip)}">
-      <span class="tb-top"><span class="tb-n${s.ord?'':' sin'}">${s.ord||s.n}</span>${s.peds.length>1?`<span class="tb-x">×${s.peds.length}</span>`:''}${(()=>{const ni=incDeFilas(s.filas);return ni.length?`<span class="tb-inc" title="${escAttr(ni.length+' novedad(es): '+ni.map(i=>novTxt(i.tipo)).join(', '))}">⚑${ni.length>1?ni.length:''}</span>`:'';})()}<span class="tb-h">${esc(hora)}</span></span>
+      <span class="tb-top"><span class="tb-n${s.ord?'':' sin'}">${s.ord||s.n}</span>${rhParada(s,lleg)}${s.peds.length>1?`<span class="tb-x">×${s.peds.length}</span>`:''}${(()=>{const ni=incDeFilas(s.filas);return ni.length?`<span class="tb-inc" title="${escAttr(ni.length+' novedad(es): '+ni.map(i=>novTxt(i.tipo)).join(', '))}">⚑${ni.length>1?ni.length:''}</span>`:'';})()}<span class="tb-h">${esc(hora)}</span></span>
       <span class="tb-c">${esc(corto(p0.CLIENTES))}</span>
       <span class="tb-f"><i style="background:${zc}"></i>${esc(tit(p0.DISTRITO))}</span></button>`;
   }
