@@ -1627,8 +1627,8 @@ body.rol-visualizador #view-armado .run-controls { display:none; }
 .empty-import:hover{background:#a90f29}
 .empty-import .ui-icon{width:17px;height:17px}
 
-/* 4) Indicadores: 6 tarjetas, cifras al mismo tamaño */
-#statsArmado{grid-template-columns:1.4fr 1fr 1fr .8fr 1.75fr 1.4fr}
+/* 4) Indicadores: 7 tarjetas, cifras al mismo tamaño (v36: completas y partes por separado) */
+#statsArmado{grid-template-columns:1.35fr 1fr 1fr .8fr 1.05fr 1.05fr 1.45fr}
 :is(#statsArmado,#statsHoja) .stat .v{display:flex;align-items:baseline;gap:10px;white-space:nowrap}
 :is(#statsArmado,#statsHoja) .stat.soles .v{font-size:clamp(22px,1.9vw,33px)!important;letter-spacing:-1px}
 :is(#statsArmado,#statsHoja) .stat.soles .v .cur{font-size:.55em;font-weight:650;color:#5b6772;margin-right:4px;letter-spacing:0}
@@ -1636,6 +1636,7 @@ body.rol-visualizador #view-armado .run-controls { display:none; }
 :is(#statsArmado,#statsHoja) .stat.uds .desg b{font-weight:750}
 :is(#statsArmado,#statsHoja) .stat.uds .desg b.c{color:#137052}:is(#statsArmado,#statsHoja) .stat.uds .desg b.p{color:#b45f06}
 :is(#statsArmado,#statsHoja) .stat.uds .desg i{font-style:normal;color:#a3acb5;margin:0 5px}
+:is(#statsArmado,#statsHoja) .stat.ucomp .v{color:#137052}:is(#statsArmado,#statsHoja) .stat.upart .v{color:#b45f06}
 #statsHoja .stat.uds{flex:1.9 1 0}#statsHoja .stat.soles{flex:1.4 1 0}
 /* el día de la programación también en Optimizar GPS, Hoja de ruta y Mapa */
 .desk-head .dia-chip{display:inline-flex;align-items:center;gap:7px;height:26px;padding:0 11px;margin-left:12px;border-radius:99px;border:1px solid #d3d9df;background:#fff;color:#2b3640;font-size:12.5px;font-weight:650;letter-spacing:0;vertical-align:middle;white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -1650,7 +1651,7 @@ body.rol-visualizador #view-armado .run-controls { display:none; }
   #view-armado .desk-head h2#planTitulo{font-size:28px;white-space:normal}
 }
 @media(min-width:761px) and (max-width:1150px){
-  #statsArmado{grid-template-columns:1.35fr 1fr 1fr .8fr 1.7fr 1.4fr}
+  #statsArmado{grid-template-columns:1.3fr 1fr 1fr .8fr 1fr 1fr 1.45fr}
   :is(#statsArmado,#statsHoja) .stat.uds .desg{display:none}
 }
 @media(max-width:760px){
@@ -1664,7 +1665,6 @@ body.rol-visualizador #view-armado .run-controls { display:none; }
   #view-armado .firma-autor{position:static;order:3;max-width:none;text-align:left;font-size:10.5px;color:#aab3bc;text-shadow:none;margin-top:2px}
   #view-armado .firma-autor b{color:#d9dee3}
   #statsArmado{grid-template-columns:repeat(2,minmax(0,1fr))}
-  #statsArmado .stat.uds{grid-column:1/-1}
   #statsArmado .stat:first-child{padding-right:62px}
 }
 }
@@ -1768,6 +1768,8 @@ header .user-badge button{white-space:nowrap}
       <button class="alt" id="btnNube"><svg class="ui-icon" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a5 5 0 0 1-1-10 7 7 0 0 1 13-1 5.5 5.5 0 0 1-1 11Z"/></svg> Sincronización</button>
       <span id="nubeEstado" style="font-size:11px;color:#7a8a99"></span>
     </div></div></div>
+
+  <div class="stats" id="statsArmado"></div>
   <div class="massbar solo-editor" id="massbar">
     <span class="mb-info"><b id="mbCount">0</b> pedidos · <b id="mbComp">0</b> completo · <b id="mbPart">0</b> partes · <b id="mbSoles">S/ 0.00</b></span>
     <span style="flex:1"></span>
@@ -1777,8 +1779,6 @@ header .user-badge button{white-space:nowrap}
     <button class="alt" id="mbDesasignar">Quitar asignación</button>
     <button class="warn" id="mbCerrar">Limpiar selección</button>
   </div>
-
-  <div class="stats" id="statsArmado"></div>
 
   <div class="wrap">
     <div class="filter-strip">    <div class="tgroup"><div class="find-field"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input type="text" class="search" id="search" aria-label="Buscar pedidos" placeholder="Buscar cliente, factura o distrito…"></div>
@@ -3000,7 +3000,8 @@ function renderStatsArmado(fz){
    <div class="stat g"><div class="v">${asig}</div><div class="l">Asignados</div></div>
    <div class="stat r"><div class="v">${sin}</div><div class="l">Sin asignar</div></div>
    ${bajas?`<div class="stat r"><div class="v">${bajas}</div><div class="l">⚠️ En baja</div></div>`:`<div class="stat"><div class="v">${unidUsadas}</div><div class="l">${fz?'Camiones en zona':'Camiones'}</div></div>`}
-   <div class="stat uds"><div class="v">${(tcomp+tpart).toLocaleString('es-PE')}<span class="desg"><b class="c">${tcomp.toLocaleString('es-PE')}</b> completas<i>·</i><b class="p">${tpart.toLocaleString('es-PE')}</b> partes</span></div><div class="l">Unidades a despachar</div></div>
+   <div class="stat ucomp"><div class="v">${tcomp.toLocaleString('es-PE')}</div><div class="l">Unidades completas</div></div>
+   <div class="stat upart"><div class="v">${tpart.toLocaleString('es-PE')}</div><div class="l">Unidades partes</div></div>
    <div class="stat soles"><div class="v"><small class="cur">S/</small>${ts.toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2})}</div><div class="l">${scope} facturado</div></div>`;
 }
 
@@ -3162,7 +3163,8 @@ function renderStatsHoja(rows){
    <div class="stat"><div class="v">${rows.length}</div><div class="l">Entregas</div></div>
    <div class="stat"><div class="v">${rutas}</div><div class="l">Rutas</div></div>
    <div class="stat"><div class="v">${placas}</div><div class="l">Placas</div></div>
-   <div class="stat uds"><div class="v">${(tc+tp).toLocaleString('es-PE')}<span class="desg"><b class="c">${tc.toLocaleString('es-PE')}</b> completas<i>·</i><b class="p">${tp.toLocaleString('es-PE')}</b> partes</span></div><div class="l">Unidades a despachar</div></div>
+   <div class="stat ucomp"><div class="v">${tc.toLocaleString('es-PE')}</div><div class="l">Unidades completas</div></div>
+   <div class="stat upart"><div class="v">${tp.toLocaleString('es-PE')}</div><div class="l">Unidades partes</div></div>
    <div class="stat soles"><div class="v"><small class="cur">S/</small>${ts.toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2})}</div><div class="l">Total facturado</div></div>`;
 }
 
@@ -3200,7 +3202,7 @@ const NUBE_URL_KEY='prove_nube_url';
    "Configurar servidor" y ese valor manda sobre este. */
 /* Sello de version: sirve para saber, sin adivinar, que archivo esta corriendo
    realmente el navegador (GitHub Pages y el cache del movil suelen servir uno viejo). */
-const APP_VERSION='2026-11-07 · planificador-34';
+const APP_VERSION='2026-11-09 · planificador-36';
 const NUBE_URL_DEFECTO='https://script.google.com/macros/s/AKfycbzPfXZFs9GVEfBfDERzGGzxO8OgoRaMOHIg_QO9jOpMP31BkvENFenAP9rubgh_GPcW4Q/exec';
 const SESION_KEY='prove_sesion';
 let sesion={usuario:'',clave:'',rol:'',nombre:''};
@@ -3338,17 +3340,34 @@ async function nubeGuardar(reg){
   }catch(e){return {ok:false,motivo:e.message,auth:false,permiso:false};}
 }
 // trae TODAS las programaciones de la nube
+/* v35: huella del texto de una programación (la misma que calcula el Apps Script v13.7) */
+function huellaTxt(t){let a=5381,b=0;for(let i=0;i<t.length;i++){const c=t.charCodeAt(i);a=((a<<5)+a+c)|0;b=(c+(b<<6)+(b<<16)-b)|0;}return (a>>>0).toString(36)+'.'+(b>>>0).toString(36)+'.'+t.length;}
+/* v35: se baja solo lo que cambió. El equipo manda la huella de cada programación que ya tiene; la
+   nube devuelve completas las distintas y, de las idénticas, solo la clave. El resultado es la misma
+   lista completa de siempre (se arma con la copia local, que es idéntica letra por letra).
+   Con un Apps Script anterior a la v13.7 llega todo, como antes. */
 async function nubeListar(){
   const url=nubeUrl();if(!url)throw new Error('No hay URL de sincronización configurada.');
+  let local=[],con=null;
+  try{local=leerStore();if(local.length){con={};local.forEach(r=>{if(r&&r.fecha)con[r.fecha]=huellaTxt(JSON.stringify(r));});}}catch(e){local=[];con=null;}
+  let data=await nubeListarPedir(url,con);
+  if(data.incremental){
+    const m=new Map(local.map(r=>[r.fecha,r])),out=(data.registros||[]).slice();
+    for(const f of (data.iguales||[])){const r=m.get(f);if(!r){data=await nubeListarPedir(url,null);return data.registros||[];}out.push(r);}
+    return out;
+  }
+  return data.registros||[];
+}
+async function nubeListarPedir(url,con){
   /* FIX seguridad: antes era GET ?accion=listar sin credenciales, o sea que
      cualquiera con la URL podía descargar todas las programaciones (clientes,
      facturas, montos). Ahora va por POST con usuario y clave. */
   const res=await fetchNube(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify({accion:'listar',usuario:sesion.usuario,clave:sesion.clave})},40000);
+    body:JSON.stringify(Object.assign({accion:'listar',usuario:sesion.usuario,clave:sesion.clave},con?{conocidas:con}:{}))},40000);
   if(!res.ok)throw new Error('HTTP '+res.status);
   const data=await res.json();
   if(!data||!data.ok)throw new Error((data&&data.error)||'respuesta inválida');
-  return data.registros||[];
+  return data;
 }
 // elimina una programación de la nube por fecha
 async function nubeEliminar(fecha){
@@ -3504,12 +3523,24 @@ function pintarEstadoSync(estado,motivo){
    GitHub Pages y el caché del navegador sirven el archivo viejo durante horas, y ahí
    quedan equipos corriendo versiones distintas. Esto consulta el propio archivo saltando
    el caché; si en el servidor hay otra versión, recarga solo. Sin Ctrl+F5, sin avisos. */
+/* v-opt: antes de bajar el archivo completo para ver si hay versión nueva, se pregunta solo por su
+   "huella" (ETag) con una consulta HEAD de unos pocos bytes. Si no cambió desde la última revisión,
+   no se baja nada; si cambió o el servidor no da huella, se revisa como siempre. */
+let verHuella='';
+const huellaResp=r=>r&&r.headers?(r.headers.get('etag')||r.headers.get('last-modified')||''):'';
+async function versionSinCambio(base){
+  if(!verHuella)return false;
+  try{const h=await fetch(base+'?v='+Date.now(),{method:'HEAD',cache:'no-store'});const e=h.ok?huellaResp(h):'';return !!e&&e===verHuella;}
+  catch(e){return false;}
+}
 async function revisarVersion(){
   if(location.protocol==='file:')return;
   try{
     const base=location.origin+location.pathname;
+    if(await versionSinCambio(base))return;
     const res=await fetch(base+'?v='+Date.now(),{cache:'no-store'});
     if(!res.ok)return;
+    verHuella=huellaResp(res);
     const txt=await res.text();
     const m=txt.match(/const APP_VERSION\s*=\s*'([^']+)'/);
     if(!m||m[1]===APP_VERSION)return;
